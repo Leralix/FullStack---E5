@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ma Page auth</title>
+        <link rel="stylesheet" href="/src/staticotstrap.min.css" type="text/css">
+
+</head>
+<body>
+    <h1>Valeur de TEST auth: {{ valueTest }}</h1>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="pseudo">Pseudo</label>
+        <input type="email" class="form-control" id="pseudo" placeholder="Pseudo">
+      </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Mot de passe</label>
+        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Mot de passe">
+      </div>
+      <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+        <label class="form-check-label" for="exampleCheck1">Rester connecté</label>
+      </div>
+      <button type="submit" href ='/new_account' class="btn btn-primary">Créer un compte test</button>
+    </form>
+
+
+</body>
+</html>

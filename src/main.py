@@ -16,5 +16,21 @@ async def root(request: Request):
 
     value = os.environ.get("TEST")
 
-    return templates.TemplateResponse("index.html", {"request": request, "valueTest": value})
+    return templates.TemplateResponse("test.html", {"request": request, "valueTest": value})
 
+
+
+@app.get("/add",response_class=HTMLResponse)
+async def auth(request: Request):
+
+    return templates.TemplateResponse("test_add.html", {"request": request, "valueTest": "de base"})
+
+@app.get("/new_account",response_class=HTMLResponse)
+async def auth(request: Request):
+
+    return templates.TemplateResponse("test_add.html", {"request": request, "valueTest": "mise a jour"})
+
+@app.get("/mon_test",response_class=HTMLResponse)
+async def auth(request: Request):
+
+    return None;
