@@ -1,13 +1,20 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from fastapi import FastAPI
+import os
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+templates = Jinja2Templates(directory="static")
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+@app.get("/",response_class=HTMLResponse)
+async def root(request: Request):
+
+    value = os.environ.get("TEST")
+
+    return templates.TemplateResponse("index.html", {"request": request, "valueTest": value})
+
