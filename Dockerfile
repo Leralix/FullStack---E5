@@ -1,9 +1,9 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10
 LABEL authors="leralix"
+WORKDIR ./src
 
-COPY requirements.txt requirements.txt
-ADD requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-COPY src/ src
+COPY src/ .

@@ -2,10 +2,28 @@
 <html>
 <head>
     <title>Ma Page</title>
-        <link rel="stylesheet" href="/src/staticotstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/bootstrap.min.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/elegant-icons.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/font-awesome.min.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/jquery-ui.min.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/nice-select.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/owl.carousel.min.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/slicknav.min.css') }}" type="text/css">
+        <link rel="stylesheet" href="{{ url_for('static', path = '/css/style.css') }}" type="text/css">
+
 
 </head>
 <body>
-    <h1>Valeur de TEST: {{ valueTest }}</h1>
+    <h1>Menu principal</h1>
+    <h2>Valeur de TEST: {{ valueTest }}</h2>
+    <button id="inscription" class="float-left submit-button" >Inscription</button>
+
+    <script type="text/javascript">
+        document.getElementById("inscription").onclick = function () {
+            location.href = "/form";
+        };
+    </script>
+
+
 </body>
 </html>
