@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, Form, status
+from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -7,9 +7,6 @@ from starlette.responses import RedirectResponse
 
 import database
 import models
-
-import os
-
 
 templates = Jinja2Templates(directory="static")
 
@@ -29,32 +26,53 @@ def get_db():
 @app.on_event("startup")
 async def startup():
     models.Base.metadata.create_all(bind=database.engine)
-
-    database.add_value(database.engine, "Roger")
-    # add_value(engine, "Pedro")
-    # add_value(engine, "Jacques")
     return
 
 
 @app.get("/")
 def home(request: Request, db: Session = Depends(get_db)):
-    # value = os.environ.get("TEST")
     user_list = db.query(models.User).all()
     return templates.TemplateResponse("base.html",
                                       {"request": request, "user_list": user_list})
 
-    # return templates.TemplateResponse("test.html", {"request": request, "valueTest": value})
+@app.get("/register")
+def home(request: Request):
+    return templates.TemplateResponse("register.html",
+                                      {"request": request})
 
+@app.get("/login")
+def home(request: Request):
+    return templates.TemplateResponse("login.html",
+                                      {"request": request})
 
 @app.post("/add")
-def add_user(name: str = Form(...), db: Session = Depends(get_db)):
-    print(name)
-    new_user = models.User(name=name)
+def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    new_user = models.User()
+    new_user.name = name
+    new_user.email = email
+    new_user.set_password(password)
     db.add(new_user)
     db.commit()
 
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.post("/login")
+def login_user(email: str = Form(...), password: str = Form(...),db: Session = Depends(get_db)):
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid email or password")
+
+    if not user.verify_password(password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                               detail="Invalid email or password")
+
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
 
 @app.get("/update/{user_id}")
 def update_user(user_id: int, db: Session = Depends(get_db)):
@@ -65,6 +83,7 @@ def update_user(user_id: int, db: Session = Depends(get_db)):
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
+
 @app.get("/delete/{user_id}")
 def delete(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -73,7 +92,6 @@ def delete(user_id: int, db: Session = Depends(get_db)):
 
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
-
 
 
 @app.get("/form", response_class=HTMLResponse)

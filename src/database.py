@@ -9,7 +9,6 @@ POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
 POSTGRES_DB = os.environ.get("POSTGRES_DB")
 SQLALCHEMY_DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@postgres/{POSTGRES_DB}"
 
-
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
@@ -26,10 +25,11 @@ def get_all_values():
     return [{"id": result.id, "name": result.name} for result in results]
 
 
-
 def add_value(engine, value):
     Session = sessionmaker(bind=engine)
     session = Session()
     nouvelle_valeur = User(name=value)
     session.add(nouvelle_valeur)
     session.commit()
+
+

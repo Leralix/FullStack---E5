@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test app</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+</head>
+
+<body>
+    <div style="margin-top: 50px;" class="ui container">
+        <h1 class="ui center aligned header">User list</h1>
+
+        <form class="ui form" id="userForm" action="/login" method="post">
+            <div class="field">
+                <label>User database
+                    <input type="text" name="email" placeholder="e-mail"><br>
+                    <input type="password" name="password" placeholder="password"><br>
+                </label>
+            </div>
+            <button class="ui blue button" type="submit">Add</button>
+        </form>
+    </div>
+
+</body>
+
+</html>

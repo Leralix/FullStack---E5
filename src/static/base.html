@@ -14,19 +14,14 @@
     <div style="margin-top: 50px;" class="ui container">
         <h1 class="ui center aligned header">User list</h1>
 
-        <form class="ui form" action="/add" method="post">
-            <div class="field">
-                <label>User database</label>
-                <input type="text" name="name" placeholder="Enter new user name..."><br>
-            </div>
-            <button class="ui blue button" type="submit">Add</button>
-        </form>
+        <button id="register" class="ui blue button" >Register</button>
+        <button id="login" class="ui blue button" >Login</button>
 
         <hr>
 
         {% for user in user_list %}
         <div class="ui segment">
-            <p class="ui big header">{{user.id }} | {{ user.name }}</p>
+            <p class="ui big header">{{user.id }} | {{ user.name }}| {{ user.hashed_password }}</p>
 
             {% if user.is_checked == False %}
             <span class="ui gray label">Not Complete</span>
@@ -39,6 +34,16 @@
         </div>
         {% endfor %}
     </div>
+
+    <script type="text/javascript">
+        document.getElementById("register").onclick = function () {
+            location.href = "/register";
+        };
+        document.getElementById("login").onclick = function () {
+            location.href = "/login";
+        };
+    </script>
+
 </body>
 
 </html>

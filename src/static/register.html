@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test app</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+</head>
+
+<body>
+    <div style="margin-top: 50px;" class="ui container">
+        <h1 class="ui center aligned header">User list</h1>
+
+        <form class="ui form" id="userForm" action="/add" method="post">
+            <div class="field">
+                <label>User database
+                    <input type="text" name="name" placeholder="User name"><br>
+                    <input type="text" name="email" placeholder="E-mail"><br>
+                    <input type="password" id="password" name="password" placeholder="Password"><br>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password"><br>
+                </label>
+            </div>
+            <button class="ui blue button" type="submit">Add</button>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        document.getElementById("userForm").onsubmit = function () {
+            let password = document.getElementById("password").value;
+            let confirmPassword = document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return false; // prevent form from submitting
+            }
+            return true; // allow form to submit
+        };
+    </script>
+
+</body>
+
+</html>
