@@ -21,7 +21,7 @@
 
         {% for user in user_list %}
         <div class="ui segment">
-            <p class="ui big header">{{user.id }} | {{ user.name }}| {{ user.hashed_password }}</p>
+            <p class="ui big header">{{user.id }} | {{ user.email }}| {{ user.hashed_password }}</p>
 
             {% if user.is_checked == False %}
             <span class="ui gray label">Not Complete</span>

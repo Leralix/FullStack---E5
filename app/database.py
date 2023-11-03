@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from app.models import User
+from models import User
 import os
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")

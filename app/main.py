@@ -2,7 +2,6 @@ import time
 from sqlite3 import OperationalError
 
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -10,7 +9,6 @@ from starlette.responses import RedirectResponse
 
 import database
 import models
-
 
 app = FastAPI()
 
@@ -62,9 +60,14 @@ def login_page(request: Request):
     return templates.TemplateResponse("login.html",
                                       {"request": request})
 
+
 @app.get("/pagetest")
 def send_page(request: Request):
     return templates.TemplateResponse("index.html",
+                                      {"request": request})
+@app.get("/{page_id}")
+def send_page(request: Request, page_id: str):
+    return templates.TemplateResponse(page_id,
                                       {"request": request})
 
 
@@ -115,22 +118,9 @@ def delete(user_id: int, db: Session = Depends(get_db)):
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
-@app.post("/add_value/")
-async def add_value_route(value: str):
-    if value == None:
-        return {"message": "Value is empty"}
-
-    database.add_value(database.engine, value)
-    return {"message": "Value added successfully"}
-
 
 @app.get("/get_values/")
 async def get_values_route():
     all_values = database.get_all_values()
     return {"values": all_values}
-
-
-@app.get("/hello/")
-async def get_values_route():
-    return {"hello": "world !"}
 
