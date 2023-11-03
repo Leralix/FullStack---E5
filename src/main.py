@@ -1,3 +1,6 @@
+import time
+from sqlite3 import OperationalError
+
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -25,8 +28,23 @@ def get_db():
 
 @app.on_event("startup")
 async def startup():
-    models.Base.metadata.create_all(bind=database.engine)
-    return
+    max_attempts = 5
+    wait_time = 10
+    print("Starting up...")
+    attempts = 0
+    while attempts < max_attempts:
+        try:
+            models.Base.metadata.create_all(bind=database.engine)
+            print(f"Connection success !")
+
+            break
+        except OperationalError:
+            print(f"Connection attempt {attempts + 1} failed")
+            attempts += 1
+            time.sleep(wait_time)
+
+
+
 
 
 @app.get("/")

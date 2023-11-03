@@ -1,4 +1,7 @@
+import time
+
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from src.models import User
@@ -31,5 +34,3 @@ def add_value(engine, value):
     nouvelle_valeur = User(name=value)
     session.add(nouvelle_valeur)
     session.commit()
-
-
