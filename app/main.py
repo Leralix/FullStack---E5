@@ -61,13 +61,15 @@ def login_page(request: Request):
                                       {"request": request})
 
 
-@app.get("/pagetest")
+@app.get("/index")
 def send_page(request: Request):
     return templates.TemplateResponse("index.html",
                                       {"request": request})
-@app.get("/{page_id}")
-def send_page(request: Request, page_id: str):
-    return templates.TemplateResponse(page_id,
+
+
+@app.get("/pagetest")
+def send_page(request: Request):
+    return templates.TemplateResponse("new_login.html",
                                       {"request": request})
 
 
@@ -123,4 +125,3 @@ def delete(user_id: int, db: Session = Depends(get_db)):
 async def get_values_route():
     all_values = database.get_all_values()
     return {"values": all_values}
-
