@@ -51,60 +51,71 @@
         <div class="d-flex justify-content-center align-items-center ">
             <div class="w-100" style="max-width: 330px;">
                 <div class="p-5 text-center" style="margin-top: 58px;">
-                    <h1 class="mb-3">Connexion a [notreSite]</h1>
+                    <h1 class="mb-3">Créer votre compte</h1>
                   </div>
-            <form id="userForm" action="/login" method="post">
+            <form id="userForm" action="/add" method="post">
+              <div class="text-center mb-3">
+                <p>Sign up with:</p>
+                <button type="button" class="btn btn-link btn-floating mx-1">
+                  <i class="fab fa-facebook-f"></i>
+                </button>
+
+                <button type="button" class="btn btn-link btn-floating mx-1">
+                  <i class="fab fa-google"></i>
+                </button>
+
+                <button type="button" class="btn btn-link btn-floating mx-1">
+                  <i class="fab fa-twitter"></i>
+                </button>
+
+                <button type="button" class="btn btn-link btn-floating mx-1">
+                  <i class="fab fa-github"></i>
+                </button>
+              </div>
+
+              <p class="text-center">or:</p>
+
+              <!-- Name input -->
+              <div class="form-outline mb-4">
+                <input type="text" name = "name" id="registerName" class="form-control" />
+                <label class="form-label" for="registerName">Name</label>
+              </div>
+
+              <!-- Username input -->
+              <div class="form-outline mb-4">
+                <input type="text" name = "username" id="registerUsername" class="form-control" />
+                <label class="form-label" for="registerUsername">Username</label>
+              </div>
+
               <!-- Email input -->
               <div class="form-outline mb-4">
-                <input type="email" name="email" id="form2Example1" class="form-control" />
-                <label class="form-label" for="form2Example1">Email address</label>
+                <input type="email" name = "email" id="registerEmail" class="form-control" />
+                <label class="form-label" for="registerEmail">Email</label>
               </div>
 
               <!-- Password input -->
               <div class="form-outline mb-4">
-                <input type="password" name="password" id="form2Example2" class="form-control" />
-                <label class="form-label" for="form2Example2">Password</label>
+                <input type="password" name = "password" id="registerPassword" class="form-control" />
+                <label class="form-label" for="registerPassword">Password</label>
               </div>
 
-              <!-- 2 column grid layout for inline styling -->
-              <div class="row mb-4">
-                <div class="col d-flex justify-content-center">
-                  <!-- Checkbox -->
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="remember_me" value="" id="form2Example34" checked />
-                    <label class="form-check-label" for="form2Example34"> Remember me </label>
-                  </div>
-                </div>
+              <!-- Repeat Password input -->
+              <div class="form-outline mb-4">
+                <input type="password" name = "confirm_password" id="registerRepeatPassword" class="form-control" />
+                <label class="form-label" for="registerRepeatPassword">Repeat password</label>
+              </div>
 
-                <div class="col">
-                  <!-- Simple link -->
-                  <a href="#!">Forgot password?</a>
-                </div>
+              <!-- Checkbox -->
+              <div class="form-check d-flex justify-content-center mb-4">
+                <input class="form-check-input me-2" name = "agreed_to_terms" type="checkbox" value="" id="registerCheck" checked
+                  aria-describedby="registerCheckHelpText" />
+                <label class="form-check-label" for="registerCheck">
+                  I have read and agree to the terms
+                </label>
               </div>
 
               <!-- Submit button -->
-              <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
-
-              <!-- Register buttons -->
-              <div class="text-center">
-                <p>Not a member? <a href="#!">Register</a></p>
-                <p>or sign up with:</p>
-                <button type="button" class="btn btn-secondary btn-floating mx-1">
-                  <i class="fab fa-facebook-f"></i>
-                </button>
-
-                <button type="button" class="btn btn-secondary btn-floating mx-1">
-                  <i class="fab fa-google"></i>
-                </button>
-
-                <button type="button" class="btn btn-secondary btn-floating mx-1">
-                  <i class="fab fa-twitter"></i>
-                </button>
-
-                <button type="button" class="btn btn-secondary btn-floating mx-1">
-                  <i class="fab fa-github"></i>
-                </button>
-              </div>
+              <button type="submit" class="btn btn-primary btn-block mb-3">Sign in</button>
             </form>
            </div>
           </div>
@@ -235,5 +246,17 @@
         <!-- Core theme JS-->
         <script src="/static/js/scripts.js"></script>
         <script type="text/javascript" src="static/js/mdb.min.js"></script>
+        <script type="text/javascript">
+            document.getElementById("userForm").onsubmit = function () {
+                let password = document.getElementById("password").value;
+                let confirmPassword = document.getElementById("confirm_password").value;
+
+                if (password !== confirmPassword) {
+                    alert("Passwords do not match.");
+                    return false; // prevent form from submitting
+                }
+                return true; // allow form to submit
+            };
+        </script>
     </body>
 </html>

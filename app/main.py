@@ -45,32 +45,27 @@ async def startup():
 @app.get("/")
 def home(request: Request, db: Session = Depends(get_db)):
     user_list = db.query(models.User).all()
-    return templates.TemplateResponse("base.html",
+    return templates.TemplateResponse("welcome.html",
                                       {"request": request, "user_list": user_list})
 
 
 @app.get("/register")
 def register(request: Request):
-    return templates.TemplateResponse("register.html",
+    return templates.TemplateResponse("new_register.html",
                                       {"request": request})
 
 
 @app.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html",
+    return templates.TemplateResponse("new_login.html",
                                       {"request": request})
 
 
 @app.get("/index")
 def send_page(request: Request):
-    return templates.TemplateResponse("index.html",
+    return templates.TemplateResponse("base.html",
                                       {"request": request})
 
-
-@app.get("/pagetest")
-def send_page(request: Request):
-    return templates.TemplateResponse("new_login.html",
-                                      {"request": request})
 
 
 @app.post("/add")

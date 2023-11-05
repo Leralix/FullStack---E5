@@ -1,0 +1,6 @@
+-- init-db.sql
+CREATE USER keycloak WITH ENCRYPTED PASSWORD 'keycloak';
+CREATE DATABASE keycloak;
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+CREATE DATABASE public;
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
