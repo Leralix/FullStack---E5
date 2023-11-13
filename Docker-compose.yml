@@ -1,6 +1,4 @@
-version: "3"
-
-
+version: "3.9"
 
 services:
   api:
@@ -10,62 +8,43 @@ services:
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
     ports:
       - "5000:5000"
-    environment:
-      # Environment Variables expecially for Postgres
-      POSTGRES_DB: db_name
-      POSTGRES_USER: user_name
-      POSTGRES_PASSWORD: password
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      network_sso:
-        ipv4_address: "10.0.0.4"
+      - network_sso
 
-  Backend_Frontend:
-    image: quay.io/keycloak/keycloak:20.0.0
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0
     command: start-dev
-    environment:
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres
-      KC_DB_URL_DATABASE: db_name
-      KC_DB_PASSWORD: password
-      KC_DB_USERNAME: user_name
-      KC_DB_SCHEMA: public
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      network_sso:
-        ipv4_address: "10.0.0.2"
+      - network_sso
 
   postgres:
     image: postgres:10
-    command: postgres -c 'max_connections=200' && postgres -c 'shared_buffers=24MB'
-    environment:
-      # Environment Variables expecially for Postgres
-      POSTGRES_DB: db_name
-      POSTGRES_USER: user_name
-      POSTGRES_PASSWORD: password
+    env_file:
+      - .env
     healthcheck:
       test: "exit 0"
     ports:
       - "5432:5432"
     networks:
-      network_sso:
-        ipv4_address: "10.0.0.3"
+      - network_sso
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
 
 networks:
   network_sso:
-    ipam:
-    # IP Address management
-      driver: default
-      # default = bridge
-      config:
-        - subnet: "10.0.0.0/24"
-
-
+    driver: bridge
