@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
 from authlib.integrations.starlette_client import OAuth
+from keycloak import KeycloakOpenID
 from starlette.middleware.sessions import SessionMiddleware
 
 import uvicorn
@@ -14,7 +15,7 @@ app.add_middleware(SessionMiddleware, secret_key="some-random-string")
 oauth = OAuth()
 
 # Configurez ici votre fournisseur OIDC
-CONF_URL = 'http://localhost:8080/realms/myrealm/.well-known/openid-configuration'
+CONF_URL = 'http://keycloak:8080/realms/myrealm/.well-known/openid-configuration'
 oauth.register(
     name='keycloak',
     server_metadata_url=CONF_URL,
@@ -27,8 +28,26 @@ oauth.register(
 
 oauth2_scheme = OAuth2PasswordBearer(
     #authorizationUrl="http://localhost:8080/realms/myrealm/protocol/openid-connect/auth",
-    tokenUrl="http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
+    tokenUrl="http://keycloak:8080/realms/myrealm/protocol/openid-connect/token"
 )
+
+
+# Configure client
+keycloak_openid = KeycloakOpenID(server_url="http://keycloak:8080",
+                                 client_id="myclient",
+                                 realm_name="myrealm",
+                                 client_secret_key="secret")
+
+# Get WellKnown
+config_well_known = keycloak_openid.well_known()
+
+# Get Code With Oauth Authorization Request
+auth_url = keycloak_openid.auth_url(
+    redirect_uri="http://localhost:5000/p",
+    scope="email",
+    state="123456")
+
+print(auth_url)
 
 async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
     client = oauth.create_client('keycloak')
@@ -74,8 +93,3 @@ def protected_endpoint(request: Request): #user :str=Depends(oauth2_scheme)):
     return {"test":request.session.get('user')}
 
 
-
-
-
-if __name__ == '__main__':
-    uvicorn.run('main:app', host="127.0.0.1", port=8081)

@@ -5,40 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify Audio Player</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-
+    <style>
+        #youtubeMusicPlayer {
+            width: 1px;
+            height: 1px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <h1>Spotify Audio Player</h1>
 
-    <!--
-    <div id="player">
+    
+
+  
+
+        <!--
+        SPOTIFY ET LE LIEN DE PREVIEW
+        BOUTTON PLAY/PAUSE
+        RIEN DE VISUEL
+
+            <div id="player">
         <img id="cover" src="" alt="Cover">
         <button id="playPause">Play</button>
-        <audio id="audioPlayer" controls style="display: none;"></audio>
+        <audio id="audioPlayer" controls style="display: none; visibility:hidden;"></audio>
     </div>
-    -->
-    <!--
-        SPOTIFY ET LE LIEN DE PREVIEW
-    <script>
-        document.getElementById('cover').src = "{{content.album.images[0].url}}";
-        const audioPlayer = document.getElementById('audioPlayer');
-        audioPlayer.src = "{{content.preview_url}}";
-        const playPauseButton = document.getElementById('playPause');
+
+        <script>
+            document.getElementById('cover').src = "{{content.album.images[0].url}}";
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playPauseButton = document.getElementById('playPause');
+            let volumeFade = null;
+            let initialVolume = 1.0; // Définissez la valeur initiale du volume ici
+        
+            audioPlayer.src = "{{content.preview_url}}";
+        
+            // Fonction pour effectuer un fondu en entrée
+            function fadeIn() {
+                clearInterval(volumeFade); // Réinitialiser l'ancien fondu si présent
+                audioPlayer.volume = 0; // Réinitialiser le volume à zéro avant le fondu en entrée
+        
+                let currentTime = 0;
+        
+                volumeFade = setInterval(() => {
+                    currentTime += 100;
+                    if (currentTime < 1000) { // Ajustez la durée du fondu en millisecondes
+                        audioPlayer.volume = (currentTime / 1000) * initialVolume;
+                    } else {
+                        clearInterval(volumeFade);
+                    }
+                }, 100);
+            }
+        
+            // Fonction pour effectuer un fondu en sortie
+            function fadeOut() {
+                clearInterval(volumeFade); // Réinitialiser l'ancien fondu si présent
+        
+                let currentTime = 0;
+        
+                volumeFade = setInterval(() => {
+                    currentTime += 100;
+                    if (currentTime < 1000) { // Ajustez la durée du fondu en millisecondes
+                        audioPlayer.volume = (1 - currentTime / 1000) * initialVolume;
+                    } else {
+                        clearInterval(volumeFade);
+                        audioPlayer.pause();
+                    }
+                }, 100);
+            }
+        
             playPauseButton.addEventListener('click', () => {
                 if (audioPlayer.paused) {
+                    fadeIn();
                     audioPlayer.play();
                     playPauseButton.textContent = 'Pause';
                 } else {
-                    audioPlayer.pause();
+                    fadeOut();
                     playPauseButton.textContent = 'Play';
                 }
             });
-
+        
             // Affichez le lecteur audio
             audioPlayer.style.display = 'block';
+        </script>
+        
+        -->
 
-    </script>
-    -->
+
+        
+            YOUTUBE IMPLEMENTATION
+            BOUTTON PLAY/PAUSE
+            RIEN DE VISUEL
+
+
+        <button id="playPause">Play</button>
+<iframe id="youtubeMusicPlayer" src="https://www.youtube.com/embed/DDdByJYUVeA?enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+<script>
+    const youtubeMusicPlayer = document.getElementById('youtubeMusicPlayer');
+    const playPauseButton = document.getElementById('playPause');
+    let player;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtubeMusicPlayer', {
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        playPauseButton.addEventListener('click', () => {
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+                playPauseButton.textContent = 'Play';
+            } else {
+                player.playVideo();
+                playPauseButton.textContent = 'Pause';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const script = document.createElement('script');
+        script.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(script);
+    });
+
+         console.log('EEEEEEEEEEE');
+
+           // Fonction pour arrêter tout (exemple : arrêt de la lecture audio/vidéo)
+           function stopEverything() {
+            console.log('AAAAAAAAA');
+            // Ajoutez ici le code pour arrêter la lecture audio/vidéo ou d'autres éléments
+
+            // Exemple : arrêt d'une éventuelle lecture audio
+           
+                player.pauseVideo();
+                playPauseButton.textContent = 'Time Out';
+                playPauseButton.disabled = true;
+
+            
+        }
+
+        // Définir un délai de 30 secondes (30000 millisecondes)
+        setTimeout(stopEverything, 10000);
+</script>
+
+        
 
     <!--
         YOUTUBE
@@ -54,7 +168,4 @@
 
 
 </body>
-
-
-
 </html>
