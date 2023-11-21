@@ -13,6 +13,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     networks:
       - network_sso
 
@@ -23,6 +25,11 @@ services:
       - .env
     ports:
       - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://keycloak:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 25
     depends_on:
       postgres:
         condition: service_healthy
