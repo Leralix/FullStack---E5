@@ -1,8 +1,12 @@
 import uvicorn
 import logging
-from fastapi import Depends, FastAPI, HTTPException, status
+import requests
+from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
+from fastapi.middleware.cors import CORSMiddleware
 
 keycloak_url = "http://localhost:8080/"
 client = "myclient"
@@ -13,11 +17,18 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     tokenUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
 )
 
-keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
-                                 client_id="myclient",
-                                 realm_name="myrealm")
+keycloak_openid = KeycloakOpenID(server_url=keycloak_url,
+                                 client_id=client,
+                                 realm_name=realm)
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -39,11 +50,38 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-@app.get("/user")
-async def get_user_test(current_user: dict = Depends(get_current_user)):
-    logging.info(current_user)
-    return current_user
+@app.get("/")
+async def read_root(request: Request):
+    return FileResponse('index.html')
 
+@app.post("/get-token")
+async def get_token(code: str = Form(...)):
+    token_endpoint = "http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
+    client_id = client
+    client_secret = "f3OxXdBBT8ze6WO94Xm0q4pbPb0D2nkG"
+    redirect_uri = "http://localhost:8081"
+
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri
+    }
+
+    response = requests.post(token_endpoint, data=data)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=400, detail="Token exchange failed")
+
+@app.get("/user")
+async def get_user_test(request: Request,current_user: dict = Depends(get_current_user)):
+    return {"user": current_user["preferred_username"]}
+
+@app.get("/headers")
+async def headers(request: Request):
+    return {"headers": dict(request.headers)}
 
 if __name__ == '__main__':
     uvicorn.run('test_github2:app', host="127.0.0.1", port=8081)

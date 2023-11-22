@@ -1,111 +1,81 @@
-import time
-from sqlite3 import OperationalError
 
-from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from starlette.responses import RedirectResponse
+import uvicorn
+import logging
+import requests
+from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Form
+from fastapi.security import OAuth2AuthorizationCodeBearer
+from keycloak import KeycloakOpenID
 
-import database
-import models
+keycloak_url = "http://localhost:8080/"
+client = "myclient"
+realm = "myrealm"
 
+oauth2_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
+    tokenUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
+)
+
+keycloak_openid = KeycloakOpenID(server_url=keycloak_url,
+                                 client_id=client,
+                                 realm_name=realm)
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-templates = Jinja2Templates(directory="templates")
 
-
-def get_db():
-    db = database.SessionLocal()
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
-        yield db
-    finally:
-        db.close()
-
-
-@app.on_event("startup")
-async def startup():
-    print("Starting up...")
-    models.Base.metadata.create_all(bind=database.engine)
-    print(f"Connection success !")
-
+        KEYCLOAK_PUBLIC_KEY = (
+            "-----BEGIN PUBLIC KEY-----\n"
+            + keycloak_openid.public_key()
+            + "\n-----END PUBLIC KEY-----"
+        )
+        return keycloak_openid.decode_token(
+            token,
+            key=KEYCLOAK_PUBLIC_KEY,
+            options={"verify_signature": True, "verify_aud": False, "exp": True},
+        )
+    except Exception as e:
+        logging.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 @app.get("/")
-def home(request: Request, db: Session = Depends(get_db)):
-    user_list = db.query(models.User).all()
-    return templates.TemplateResponse("welcome.html",
-                                      {"request": request, "user_list": user_list})
+async def read_root(request: Request):
+    return FileResponse('index.html')
 
+@app.post("/get-token")
+async def get_token(code: str = Form(...)):
+    token_endpoint = "http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
+    client_id = client
+    client_secret = "f3OxXdBBT8ze6WO94Xm0q4pbPb0D2nkG"
+    redirect_uri = "http://localhost:8081"
 
-@app.get("/register")
-def register(request: Request):
-    return templates.TemplateResponse("new_register.html",
-                                      {"request": request})
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri
+    }
 
+    response = requests.post(token_endpoint, data=data)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise HTTPException(status_code=400, detail="Token exchange failed")
 
-@app.get("/login")
-def login_page(request: Request):
-    return templates.TemplateResponse("new_login.html",
-                                      {"request": request})
+@app.get("/user")
+async def get_user_test(request: Request,current_user: dict = Depends(get_current_user)):
+    logging.info(current_user)
+    return current_user
 
+@app.get("/headers")
+async def headers(request: Request):
+    return {"headers": dict(request.headers)}
 
-@app.get("/index")
-def send_page(request: Request):
-    return templates.TemplateResponse("base.html",
-                                      {"request": request})
-
-
-
-@app.post("/add")
-def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    new_user = models.User()
-    new_user.name = name
-    new_user.email = email
-    new_user.set_password(password)
-    db.add(new_user)
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
-
-
-@app.post("/login")
-def login_user(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == email).first()
-
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid email or password")
-
-    if not user.verify_password(password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid email or password")
-
-    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
-
-@app.get("/update/{user_id}")
-def update_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    user.is_checked = not user.is_checked
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
-
-
-@app.get("/delete/{user_id}")
-def delete(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    db.delete(user)
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
-
-
-@app.get("/get_values/")
-async def get_values_route():
-    all_values = database.get_all_values()
-    return {"values": all_values}
+if __name__ == '__main__':
+    uvicorn.run('test_github2:app', host="127.0.0.1", port=8081)
