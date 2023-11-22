@@ -1,7 +1,7 @@
 import time
 from sqlite3 import OperationalError
 
-from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
+from fastapi import FastAPI, Depends, Request, Form, status, HTTPException, Security
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -9,6 +9,8 @@ from starlette.responses import RedirectResponse
 
 import database
 import models
+from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
+from keycloak import KeycloakOpenID
 
 app = FastAPI()
 
@@ -55,11 +57,60 @@ def register(request: Request):
                                       {"request": request})
 
 
+oauth2_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl="http://keycloak:8080/realms/myrealm/protocol/openid-connect/auth",
+    tokenUrl="http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
+)
+keycloak_openid = KeycloakOpenID(
+    server_url="http://keycloak:8080/", 
+    realm_name="myrealm", 
+    client_id="myclient", 
+    client_secret_key="haCx6kKNefSB1y2tP7Iu44VAz3rtdSEc", 
+    )
+
+"""
 @app.get("/login")
-def login_page(request: Request):
+def login_page(request: Request, token:str = Depends(oauth2_scheme)):
+
+    try:
+        user_info = keycloak_openid.userinfo(token)
+        return {"message": "You are authenticated", "user_info": user_info}
+
+    except:
+        return {"not connected": "not connected"}
+    
     return templates.TemplateResponse("new_login.html",
                                       {"request": request})
+""" 
 
+@app.get("/login")
+def login_page(request: Request):
+    # Rediriger l'utilisateur vers l'écran d'authentification de Keycloak
+    redirect_uri = "http://localhost:5000/login/callback"  # Remplacez par l'URL de rappel de votre application
+    authorization_url = (
+        f"http://localhost:8080/realms/myrealm/protocol/openid-connect/auth?"
+        f"response_type=code&client_id=myclient&redirect_uri={redirect_uri}"
+    )
+    return RedirectResponse(authorization_url)
+
+
+@app.get("/login/callback")
+def login_callback(request: Request, session_state:str, code :str):
+    try:
+        access_token = keycloak_openid.token(
+        grant_type='authorization_code',
+        code=code,
+        scope='openid email profile',
+        redirect_uri="http://localhost:5000/login/callback")
+        print("access token :",access_token)
+        # Utilisez le token d'accès pour obtenir les informations de l'utilisateur depuis Keycloak
+        print("true acess",access_token['access_token'])
+        user_info = keycloak_openid.userinfo(access_token['access_token'])
+
+        return {"message": "You are authenticated", "user_info": user_info}
+
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/index")
 def send_page(request: Request):
