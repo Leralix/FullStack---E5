@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Frontend for FastAPI</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Simple Frontend for FastAPI</h1>
+    <button id="login">Login</button>
+    <button id="fetch-data" disabled>Fetch Data</button>
+    <pre id="data"></pre>
+
+    <script>
+        const loginBtn = document.getElementById('login');
+        const fetchDataBtn = document.getElementById('fetch-data');
+        const dataPre = document.getElementById('data');
+
+        let accessToken = '';
+
+        loginBtn.addEventListener('click', function() {
+            const keycloakBaseUrl = 'http://localhost:8080/auth/realms/myrealm/protocol/openid-connect/auth';
+            const clientId = 'myclient';
+            const responseType = 'code';
+            const scope = 'openid';
+            const loginUrl = `${keycloakBaseUrl}?client_id=${clientId}&redirect_uri=${encodedRedirectUri}&response_type=${responseType}&scope=${scope}`;
+            window.location.href = loginUrl;
+        });
+
+        fetchDataBtn.addEventListener('click', function() {
+            if (accessToken) {
+                axios.get('http://127.0.0.1:8081/user', {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                })
+                .then(response => {
+                    dataPre.textContent = JSON.stringify(response.data, null, 2);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert('Error fetching data. See console for details.');
+                });
+            }
+        });
+
+        // Function to extract token from URL (if present)
+        function getTokenFromUrl() {
+            // Parse URL hash to extract access token
+            const hash = window.location.hash.substr(1);
+            const params = new URLSearchParams(hash);
+            return params.get('access_token');
+        }
+
+        // Check for token in URL on load
+        window.onload = function() {
+            const token = getTokenFromUrl();
+            if (token) {
+                accessToken = token;
+                fetchDataBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
