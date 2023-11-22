@@ -12,7 +12,7 @@ import models
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
@@ -26,20 +26,9 @@ def get_db():
 
 @app.on_event("startup")
 async def startup():
-    max_attempts = 5
-    wait_time = 10
     print("Starting up...")
-    attempts = 0
-    while attempts < max_attempts:
-        try:
-            models.Base.metadata.create_all(bind=database.engine)
-            print(f"Connection success !")
-
-            break
-        except OperationalError:
-            print(f"Connection attempt {attempts + 1} failed")
-            attempts += 1
-            time.sleep(wait_time)
+    models.Base.metadata.create_all(bind=database.engine)
+    print(f"Connection success !")
 
 
 @app.get("/")

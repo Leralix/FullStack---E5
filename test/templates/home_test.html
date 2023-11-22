@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login with Keycloak</title>
+</head>
+<body>
+    <button id="login">Login with Keycloak</button>
+    <script>
+        document.getElementById('login').addEventListener('click', function() {
+            // Modifier ces valeurs selon votre configuration Keycloak
+            const keycloakUrl = 'http://localhost:8080';
+            const realm = 'myrealm';
+            const clientId = 'myclient';
+            const redirectUri = encodeURIComponent(window.location.origin + '/callback'); // Assurez-vous que cette URI est autorisée dans Keycloak
+
+            // Rediriger vers Keycloak pour l'authentification
+            window.location.href = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid`;
+        });
+
+        // Gérer le callback
+        if (window.location.search.includes('code=')) {
+            // Extraire le code d'autorisation de l'URL
+            const code = new URLSearchParams(window.location.search).get('code');
+
+            // Échanger le code contre un token
+            fetch(`${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `grant_type=authorization_code&code=${code}&client_id=${clientId}&redirect_uri=${encodeURIComponent(window.location.origin + '/callback')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Utiliser le token pour accéder à la route protégée
+                const token = data.access_token;
+                fetch('http://127.0.0.1:8081/protected-route', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Data from protected route:', data);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

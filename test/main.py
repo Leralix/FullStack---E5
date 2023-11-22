@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer
 from authlib.integrations.starlette_client import OAuth
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
@@ -22,10 +22,8 @@ oauth.register(
     }
 )
 
-oauth2_scheme = OAuth2PasswordBearer(
-    #authorizationUrl="http://localhost:8080/realms/myrealm/protocol/openid-connect/auth",
-    tokenUrl="http://localhost:8080/realms/myrealm/protocol/openid-connect/token"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
     client = oauth.create_client('keycloak')
@@ -58,6 +56,7 @@ async def auth(request: Request):
 @app.get("/p")
 def protected_endpoint(request: Request): #user :str=Depends(oauth2_scheme)):
     return {"message": "Vous êtes authentifié en tant que: {}".format(request.session.get('user'))}
+
 
 
 if __name__ == '__main__':

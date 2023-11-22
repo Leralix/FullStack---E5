@@ -1,0 +1,41 @@
+<!-- protected_page.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Protected Page</title>
+    <script>
+        // Function to extract the token from URL parameters
+        function getTokenFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('token');
+        }
+
+        // Store the token in localStorage
+        const token = getTokenFromUrl();
+        if (token) {
+            localStorage.setItem('token', token);
+            // Optionally, remove the token from the URL for security
+            history.replaceState({}, '', '/p');
+        }
+
+        // Example of using the token for an API request
+        function makeApiRequest() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('/some-protected-endpoint', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Protected Page</h1>
+    <button onclick="makeApiRequest()">Make API Request</button>
+</body>
+</html>
