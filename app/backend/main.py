@@ -13,6 +13,23 @@ response = requests.get(url)
 
 app = FastAPI()
 
+def get_keycloak_admin_token():
+    url = "https://localhost:8080/auth/realms/myrealm/protocol/openid-connect/token"
+    payload = {
+        'client_id': 'myclient',
+        'client_secret': '7c6090bff5b9434696350d5ba5eb0b35',
+        'grant_type': 'client_credentials'
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    response = requests.post(url, data=payload, headers=headers)
+    response_json = response.json()
+    return response_json["access_token"]
+
+
+
 
 def get_db():
     db = database.SessionLocal()
@@ -23,9 +40,13 @@ def get_db():
 
 @app.on_event("startup")
 async def startup():
-    print("Starting up...")
+    print("Lancement de la BDD...")
     models.Base.metadata.create_all(bind=database.engine)
-    print(f"Connection success !")
+    print(f"Succès !")
+    print(f"Ajout d'utilisateurs pour les tests...")
+    #database.add_user("1", "MrTest", "MrTest@gmail.com")
+    #database.add_user("2", "MrDeuxieme", "MrDeuxieme@free.com")
+    print(f"Ajout d'utilisateurs terminé !")
 
 
 @app.get("/")
@@ -36,17 +57,23 @@ def home():
 def get_string():
     return {"message": "plouf"}
 
-@app.post("/add")
-def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+@app.get("/api/user/{user_id}/name")
+def get_user_name(user_id: int):
+    user = database.get_user_from_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"data": user.get_name()}
+
+@app.get("/api/user/add")
+def add_user(name: str, email: str, db: Session = Depends(get_db)):
     new_user = models.User()
     new_user.name = name
     new_user.email = email
-    new_user.set_password(password)
     db.add(new_user)
     db.commit()
 
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+    return {"status": "success", "message": "User added successfully"}
+
 
 @app.get("/update/{user_id}")
 def update_user(user_id: int, db: Session = Depends(get_db)):
