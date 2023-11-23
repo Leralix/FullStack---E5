@@ -1,6 +1,3 @@
-import time
-from sqlite3 import OperationalError
-
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,11 +6,12 @@ from starlette.responses import RedirectResponse
 
 import database
 import models
+import requests
+
+url = "https://api.sampleapis.com/coffee/hot"
+response = requests.get(url)
 
 app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-templates = Jinja2Templates(directory="templates")
 
 
 def get_db():
@@ -23,7 +21,6 @@ def get_db():
     finally:
         db.close()
 
-
 @app.on_event("startup")
 async def startup():
     print("Starting up...")
@@ -32,30 +29,12 @@ async def startup():
 
 
 @app.get("/")
-def home(request: Request, db: Session = Depends(get_db)):
-    user_list = db.query(models.User).all()
-    return templates.TemplateResponse("welcome.html",
-                                      {"request": request, "user_list": user_list})
+def home():
+    return {"test":"zoup"}
 
-
-@app.get("/register")
-def register(request: Request):
-    return templates.TemplateResponse("new_register.html",
-                                      {"request": request})
-
-
-@app.get("/login")
-def login_page(request: Request):
-    return templates.TemplateResponse("new_login.html",
-                                      {"request": request})
-
-
-@app.get("/index")
-def send_page(request: Request):
-    return templates.TemplateResponse("base.html",
-                                      {"request": request})
-
-
+@app.get("/get-string")
+def get_string():
+    return {"message": "plouf"}
 
 @app.post("/add")
 def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -68,22 +47,6 @@ def add_user(name: str = Form(...), email: str = Form(...), password: str = Form
 
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
-
-
-@app.post("/login")
-def login_user(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == email).first()
-
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid email or password")
-
-    if not user.verify_password(password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid email or password")
-
-    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
 
 @app.get("/update/{user_id}")
 def update_user(user_id: int, db: Session = Depends(get_db)):
@@ -109,3 +72,7 @@ def delete(user_id: int, db: Session = Depends(get_db)):
 async def get_values_route():
     all_values = database.get_all_values()
     return {"values": all_values}
+
+
+
+
