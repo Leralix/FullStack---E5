@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>Welcome</title>
+    <title>Home - BTO</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
     <!-- Font Awesome -->
@@ -15,36 +15,19 @@
     <link rel="stylesheet" href="static/css/mdb.min.css" />
     <!-- Custom styles -->
     <link rel="stylesheet" href="static/css/style.css" />
+    <link rel="stylesheet" href="static/css/our_css.css" />
+
 </head>
 <body>
   <!--Main Navigation-->
   <header>
-    <style>
-      body {
-        margin: 0; /* Supprime la marge par défaut du corps */
-        padding: 0; /* Supprime le rembourrage par défaut du corps */
-      }
-
-      #intro {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background-image: url('static/picture/home_background.png'); /* URL de votre image */
-        background-size: cover; /* Ajuste la taille de l'image pour qu'elle couvre l'intégralité de la fenêtre */
-        background-position: center; /* Centre l'image sur la page */
-        background-repeat: no-repeat; /* Empêche la répétition de l'image */
-      }
-    </style>
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark d-none d-lg-block" style="z-index: 2000;">
       <div class="container-fluid">
         <!-- Navbar brand -->
-        <a class="navbar-brand nav-link" target="_blank" href="https://mdbootstrap.com/docs/standard/">
-          <strong>MDB</strong>
+        <a class="navbar-brand me-2" id="mdb-navbar-brand-logo" href="/home">
+          <img src="static/img/BTO-text.png" height="16" alt="" loading="lazy" style="margin-top: -1px">
         </a>
         <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarExample01"
           aria-controls="navbarExample01" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,24 +58,87 @@
     </nav>
     <!-- Navbar -->
 
-    <!-- Background image -->
+    <!-- Background + Cards -->
     <div id="intro" class="bg-image shadow-2-strong">
-      <div class="mask" style="background-color: rgba(0, 0, 0, 0.0);">
-        <div class="container d-flex align-items-center justify-content-center text-center h-100">
-          <div class="text-white">
-            <h1 class="mb-3">Home</h1>
-            <h5 class="mb-4">Salut gab</h5>
+      <div class = "container custom-container ">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+          <div class="col">
+            <div class="card h-100" style="background-color: #EF9A9A; ">
+              <div class="bg-image hover-overlay" data-mdb-ripple-init data-mdb-ripple-color="light">
+                <img src="static/img/home-cards-playlist.jpg" class="img-fluid"/>
+                <a href="#!">
+                  <div class="mask" style="
+                    background: linear-gradient(
+                      45deg,
+                      hsla(169, 84.5%, 32%, 0.30),
+                      hsla(199, 100.0%, 21.8%, 0.30) 50%
+                    );
+                  "></div>
+                </a>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">Parcourir les playlists</h5>
+                <p class="card-text">
+                  Testez vos conaissances sur nos playlists officielles
+                </p>
+                <a href="#!" class="btn btn-primary btn-rounded" data-mdb-ripple-init>Jouer</a>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100" style="background-color: #BCAAA4; ">
+              <div class="bg-image hover-overlay" data-mdb-ripple-init data-mdb-ripple-color="light">
+                <img src="static/img/home-cards-create.jpg" class="img-fluid"/>
+                <a href="#!">
+                  <div class="mask" style="
+                    background: linear-gradient(
+                      45deg,
+                      hsla(169, 84.5%, 32%, 0.30),
+                      hsla(199, 100.0%, 21.8%, 0.30) 50%
+                    );
+                  "></div>
+                </a>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">Nouvelle Playlist</h5>
+                <p class="card-text">
+                  Créez vos propres playlists a partir de notre base de données
+                </p>
+                <a href="#!" class="btn btn-primary btn-rounded" data-mdb-ripple-init>Création</a>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100" style="background-color: #66BB6A; ">
+              <div class="bg-image hover-overlay" data-mdb-ripple-init data-mdb-ripple-color="light">
+                <img src="static/img/home-cards-spotify.jpg" class="img-fluid"/>
+                <a href="#!">
+                   <div class="mask" style="
+                    background: linear-gradient(
+                      45deg,
+                      hsla(169, 84.5%, 32%, 0.30),
+                      hsla(199, 100.0%, 21.8%, 0.30) 50%
+                    );
+                  "></div>
+                </a>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">Importer une playlist</h5>
+                <p class="card-text">
+                  Importez vos playlists Spotify pour un blind test personalisé
+                </p>
+                <a href="#!" class="btn btn-primary btn-rounded" data-mdb-ripple-init>Importation</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <!-- Background image -->
   </header>
   <!--Main Navigation-->
-  <!--Footer-->
-    <!-- MDB -->
-    <script type="text/javascript" src="js/mdb.min.js"></script>
-    <!-- Custom scripts -->
-    <script type="text/javascript" src="js/script.js"></script>
+
+  <!-- Custom scripts -->
+  <script type="text/javascript" src="js/mdb.min.js"></script>
+  <script type="text/javascript" src="js/script.js"></script>
 </body>
 </html>

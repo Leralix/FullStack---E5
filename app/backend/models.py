@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, String
+from sqlalchemy import Column, Integer, Boolean, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -31,6 +31,26 @@ class Song(Base):
     artist = Column(String)
     album = Column(String)
 
+    def get_id(self):
+        return self.id
+
+    def get_name(self):
+        return self.name
+
+    def get_artist(self):
+        return self.artist
+
+    def get_album(self):
+        return self.album
+
+
+class Playlist(Base):
+    __tablename__ = 'table_playlist'
+
+    id = Column(Integer, primary_key=True, index=True)
+    creator_id = Column(String)
+    name = Column(String)
+    created_at = Column(DateTime)
     def get_id(self):
         return self.id
 
