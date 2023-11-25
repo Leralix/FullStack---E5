@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from models import User, Song
+from models import User, Song, Playlist, PlaylistSong
 import os
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
@@ -56,9 +56,9 @@ def get_all_users():
 
 ###Partie
 
-def add_song(name, artist, album):
+def add_song(id, name, artist, album, preview_url):
     session = SessionLocal()
-    new_song = Song(name=name, artist=artist, album=album)
+    new_song = Song(id=id, name=name, artist=artist, album=album, preview_url=preview_url)
     session.add(new_song)
     session.commit()
     session.close()
@@ -83,4 +83,39 @@ def remove_song_from_id(id):
     return result
 
 
+# PLAYLIST
 
+def add_playlist(id,name,creator_id):
+    session = SessionLocal()
+    new_playlist = Playlist(name=name, id=id, creator_id=creator_id)
+    session.add(new_playlist)
+    session.commit()
+    session.close()
+
+def get_playlist(id):
+    session = SessionLocal()
+    result = session.query().filter(Playlist.id == id).first()
+    session.close()
+    return result
+
+def get_all_playlist():
+    session = SessionLocal()
+    results = session.query(Playlist).all()
+    session.close()
+    return [{"id": result.id, "name": result.name, "creator_id": result.creator_id} for result in results]
+
+def remove_playlist_from_id(id):
+    session = SessionLocal()
+    result = session.query(Playlist).filter(Playlist.id == id).delete()
+    session.commit()
+    session.close()
+    return result
+
+
+
+def add_song_to_playlist(playlist_id,song_id):
+    session = SessionLocal()
+    new_playlist_song = PlaylistSong(playlist_id=playlist_id, song_id=song_id)
+    session.add(new_playlist_song)
+    session.commit()
+    session.close() 
