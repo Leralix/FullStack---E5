@@ -98,6 +98,16 @@
                 <i class="fab fa-github"></i>
               </a>
             </li>
+            {% if userinfo %}
+            <li class="">
+              <a class="nav-link" href="/profile" rel="nofollow" target="_blank">
+                {{userinfo.preferred_username}}
+              </a>
+            </li>
+            {% else %}
+
+            {% endif %}
+
           </ul>
         </div>
       </div>
@@ -115,10 +125,16 @@
           <div class="text-white">
             <h1 class="mb-3">Notre super application</h1>
             <h5 class="mb-4">On espère avoir une bonne note</h5>
-            <a class="btn btn-outline-light btn-lg m-2" href="/register" role="button"
+
+              {% if userinfo %}
+
+              {% else %}
+              <a class="btn btn-outline-light btn-lg m-2" href="/register" role="button"
               rel="nofollow">Créer un compte</a>
-            <a class="btn btn-outline-light btn-lg m-2" href="/new_login"
+              <a class="btn btn-outline-light btn-lg m-2" href="/new_login"
               role="button">Se connecter</a>
+              {% endif %}
+
           </div>
         </div>
       </div>
