@@ -200,6 +200,14 @@ async def get_song(song_id: int):
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return {"song": song}
+
+
+@app.get("/api/search_songs/{search_term}")
+async def search_songs(search_term: str):
+    songs = database.search_songs(search_term)
+    if not songs:
+        raise HTTPException(status_code=404, detail="No songs found")
+    return {"songs": songs}
 ## FIN AJOUT PLAYLIST
 
 

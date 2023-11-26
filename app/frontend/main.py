@@ -58,6 +58,10 @@ async def specific_songs(request: Request, id: int):
     return templates.TemplateResponse("song_id.html",
                                         {"request": request, "id_song": id})
 
+@app.get("/search_songs")
+async def search_songs(request: Request):
+    return templates.TemplateResponse("search_songs.html",
+                                        {"request": request})
 @app.post("/add")
 async def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...)):
     async with httpx.AsyncClient() as clientT:

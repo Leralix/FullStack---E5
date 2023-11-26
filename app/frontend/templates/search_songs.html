@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recherche de chansons</title>
+    <script>
+        let timeoutId;
+
+        function searchSongs() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const query = document.getElementById('searchInput').value;
+                const url = `http://localhost:8081/api/search_songs/${query}`;
+                // Faites quelque chose avec l'URL, par exemple, effectuez une requête AJAX
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        const songsList = document.getElementById('songsList');
+                        songsList.innerHTML = '';
+                        data.songs.song_founded.forEach(song => {
+                            const listItem = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.textContent = song.name + ' - ' + song.album + ' - ' + song.artist;
+                            link.href = `/songs/${song.id}`;
+                            listItem.appendChild(link);
+                            songsList.appendChild(listItem);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Une erreur s\'est produite lors de la recherche des chansons:', error);
+                    });
+            }, 500);
+        }
+    </script>
+</head>
+<body>
+    <input type="text" id="searchInput" oninput="searchSongs()" placeholder="Rechercher une chanson...">
+    <ul id="songsList"></ul>
+</body>
+</html>

@@ -82,6 +82,23 @@ def remove_song_from_id(id):
     session.close()
     return result
 
+from sqlalchemy import create_engine, or_
+from urllib.parse import quote
+
+def search_songs(search_term:str):
+
+    encoded_search_query = quote(search_term)
+    subterms = encoded_search_query.split()
+
+
+    session = SessionLocal()
+    conditions = or_(
+        *[getattr(Song, field).ilike(f"%{subterm}%") for subterm in subterms for field in ["name", "artist", "album"]]
+    )    
+    results = session.query(Song).filter(conditions).limit(20).all()
+
+    session.close()
+    return {"song_founded":[{"id":song.id, "artist":song.artist, "album": song.album, "name":song.name} for song in results]}
 
 # PLAYLIST
 
