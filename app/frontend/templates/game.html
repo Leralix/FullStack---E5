@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blind Test</title>
+</head>
+<body>
+    <h1>Blind Test</h1>
+
+    <!-- Musique à deviner -->
+    <h2>Devinez la musique :</h2>
+    <audio controls autoplay>
+        <source src="{{ song_to_guess["preview_url"] }}" type="audio/mp3" autoplay>
+        Votre navigateur ne supporte pas l'élément audio.
+    </audio>
+
+    <!-- Listes des musiques -->
+    <h2>Choisissez parmi ces 4 musiques :</h2>
+    <ul>
+        {% for song in songs %}
+            <li>{{ song.name }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

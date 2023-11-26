@@ -69,51 +69,16 @@
       <section>
         <h3 class="text-white p-2" >Playlists populaires</h3>
           <div class="row text-white text-center ms-3 me-3 ">
-            <div class="col-md" href = "#">
-              <a href = "#">
+            {% for playlist in top_playlists %}
+            <div class="col-md" >
+              <a href="/game/{{playlist.id}}">
                 <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
-                  <div class="card-body">
-                    <h5 class="p-2 text-white">Mickael Jackson</h5>
-                    <a href="#" ></a>
-                  </div>
+                <div class="card-body">
+                  <h5 class="p-2 text-white">{{ playlist.name }}</h5>
+                </div>
               </a>
             </div>
-            <div class="col-md" href = "#">
-              <a href = "#">
-                  <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
-                  <div class="card-body">
-                    <h5 class="p-2 text-white">Mickael Jackson</h5>
-                    <a href="#" ></a>
-                  </div>
-              </a>
-            </div>
-            <div class="col-md" href = "#">
-              <a href = "#">
-                  <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
-                  <div class="card-body">
-                    <h5 class="p-2 text-white">Mickael Jackson</h5>
-                    <a href="#" ></a>
-                  </div>
-              </a>
-            </div>
-            <div class="col-md" href = "#">
-              <a href = "#">
-                  <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
-                  <div class="card-body">
-                    <h5 class="p-2 text-white">Mickael Jackson</h5>
-                    <a href="#" ></a>
-                  </div>
-              </a>
-            </div>
-            <div class="col-md" href = "#">
-              <a href = "#">
-                  <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
-                  <div class="card-body">
-                    <h5 class="p-2 text-white">Mickael Jackson</h5>
-                    <a href="#" ></a>
-                  </div>
-              </a>
-            </div>
+            {% endfor %}
           </div>
       </section>
 

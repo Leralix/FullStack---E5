@@ -11,6 +11,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 templates = Jinja2Templates(directory="templates")
 
+
 def get_userinfo(request: Request):
     access_token = request.cookies.get("Authorization")
 
@@ -24,11 +25,22 @@ def get_userinfo(request: Request):
         return None
 
 
+async def backend_requesst(endpoint: str, params=None):
+    async with httpx.AsyncClient() as clientT:
+        response = await clientT.get(backend_url + endpoint,
+                                     params=params)
+        if response.status_code == 200:
+            return response.json()
+
+        else:
+            return {"error": "error"}
+
+
 @app.get("/")
 async def welcome(request: Request, userinfo=Depends(get_userinfo)):
-    print("USERINFO : ",userinfo)
+    print("USERINFO : ", userinfo)
     return templates.TemplateResponse("welcome.html",
-                                      {"request": request, "userinfo":userinfo})
+                                      {"request": request, "userinfo": userinfo})
 
 
 @app.get("/register")
@@ -36,40 +48,62 @@ async def register(request: Request):
     return templates.TemplateResponse("new_register.html",
                                       {"request": request})
 
+
 @app.get("/home")
 async def home(request: Request):
     return templates.TemplateResponse("home.html",
                                       {"request": request})
 
-@app.get("/playlists")
+
+@app.get("/old_playlists")
 async def display_playlists(request: Request):
-  return templates.TemplateResponse("playlist.html",
+    return templates.TemplateResponse("playlist.html",
                                       {"request": request})
 
-@app.get("/new_playlists")
+
+@app.get("/playlists")
 async def display_playlists(request: Request):
-  return templates.TemplateResponse("new_playlist.html",
-                                      {"request": request})
+    top_playlists = await backend_requesst("playlists/top")
+    top_playlists = top_playlists["playlists"]
+
+    return templates.TemplateResponse("new_playlist.html",
+                                      {"request": request, "top_playlists": top_playlists})
+
+
+@app.get("/game/{playlist_id}")
+async def game_test(request: Request, playlist_id: str):
+    game = await backend_requesst("game/" + playlist_id)
+
+    songs = game["songs"]
+    song_to_guess = game["actual_song"]
+    #return song_to_guess["preview_url"]
+    return templates.TemplateResponse("game.html",
+                                      {"request": request, "songs": songs, "song_to_guess": song_to_guess})
+
 
 @app.get("/playlists/{id}")
 async def specific_playlists(request: Request, id: int):
-  return templates.TemplateResponse("playlist_id.html",
+    return templates.TemplateResponse("playlist_id.html",
                                       {"request": request, "id_playlist": id})
 
 
 @app.get("/songs/{id}")
 async def specific_songs(request: Request, id: int):
     return templates.TemplateResponse("song_id.html",
-                                        {"request": request, "id_song": id})
+                                      {"request": request, "id_song": id})
+
 
 @app.get("/search_songs")
 async def search_songs(request: Request):
     return templates.TemplateResponse("search_songs.html",
-                                        {"request": request})
+                                      {"request": request})
+
+
 @app.post("/add")
 async def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...)):
     async with httpx.AsyncClient() as clientT:
-        response = await clientT.get(backend_url + "user/add", params={"name": name, "email": email, "password": password})
+        response = await clientT.get(backend_url + "user/add",
+                                     params={"name": name, "email": email, "password": password})
 
         if response.status_code == 200:
             url = app.url_path_for("home")
@@ -111,41 +145,39 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 @app.get("/profile")
-def display_userinfo(token:str=Depends(oauth2_scheme)):
+def display_userinfo(token: str = Depends(oauth2_scheme)):
     userinfo = keycloak_openid.userinfo(token)
     return {"userinfo": userinfo}
+
+
 # FIN AJOUT AUTHENTIFICATION
-
-
-
-
-
-
-
-
 
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 
+
 @app.get("/login")
 def login_page(request: Request):
-    return RedirectResponse("http://localhost:8080/realms/myrealm/protocol/openid-connect/auth?client_id=myclient&response_type=code&scope=openid&redirect_uri=http://localhost:5000/login/callback/")
-    #return templates.TemplateResponse("new_login.html",{"request": request})
+    return RedirectResponse(
+        "http://localhost:8080/realms/myrealm/protocol/openid-connect/auth?client_id=myclient&response_type=code&scope=openid&redirect_uri=http://localhost:5000/login/callback/")
+    # return templates.TemplateResponse("new_login.html",{"request": request})
+
 
 @app.get("/login/callback/")
 def login_callback(request: Request, response: Response):
     code = request.query_params.get("code")
     if code is None:
-        return {"Info":"No Token"}
+        return {"Info": "No Token"}
     else:
-        #token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
+        # token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
         token = keycloak_openid.token(username="myuser", password="test")
-        #request.session["Authorization"] = token['access_token']
+        # request.session["Authorization"] = token['access_token']
         response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
-        print("TOKEN :",token)
+        print("TOKEN :", token)
         return RedirectResponse("/profile")
-        #return {"Token":token}
+        # return {"Token":token}
 
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -154,10 +186,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 from fastapi import FastAPI, Cookie, HTTPException, Request
 
+
 @app.middleware("http")
 async def create_auth_header(
-    request: Request,
-    call_next,
+        request: Request,
+        call_next,
 ):
     """
     Check if there are cookies set for authorization. If so, construct the
@@ -165,29 +198,27 @@ async def create_auth_header(
     exists!)
     """
 
-
     access_token = request.cookies.get("Authorization")
-    if ("Authorization" not in request.headers 
-        and access_token
-        ):
+    if ("Authorization" not in request.headers
+            and access_token
+    ):
+        # access_token = request.session["Authorization"]
 
-        #access_token = request.session["Authorization"]
-        
         request.headers.__dict__["_list"].append(
             (
                 "authorization".encode(),
-                 f"Bearer {access_token}".encode(),
+                f"Bearer {access_token}".encode(),
             )
         )
-    
+
     response = await call_next(request)
     return response
+
+
 app.add_middleware(SessionMiddleware, secret_key="random")
+
 
 @app.get("/index")
 def send_page(request: Request):
     return templates.TemplateResponse("base.html",
                                       {"request": request})
-
-
-

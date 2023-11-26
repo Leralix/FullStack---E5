@@ -1,4 +1,7 @@
+import random
+
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -61,67 +64,12 @@ async def startup():
 
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    add_playlist_to_database()
+    database.debug_create_test_playlists()
 
     ##print(f"Ajout d'utilisateurs pour les tests...")
     # database.add_user("1", "MrTest", "MrTest@gmail.com")
     # database.add_user("2", "MrDeuxieme", "MrDeuxieme@free.com")
     ##print(f"Ajout d'utilisateurs terminé !")
-
-
-import base64
-
-
-def add_playlist_to_database():
-    client_id = '03af55ee0a774b71a5504d693e34ba83'
-    client_secret = '7c6090bff5b9434696350d5ba5eb0b35'
-
-    auth_url = 'https://accounts.spotify.com/api/token'
-
-    auth_headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-    }
-
-    auth_data = {
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret
-    }
-
-    content = requests.post(auth_url, headers=auth_headers, data=auth_data)
-    # print(content.json())
-    access_token = content.json()["access_token"]
-
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    link = 'https://api.spotify.com/v1/playlists/37i9dQZF1DZ06evO1SVXaM'
-    response = requests.get(link, headers=headers)
-    response_json = response.json()
-
-    id_playlist = 1
-    creator_id = response_json["owner"]["display_name"]
-    name_playlist = response_json["name"]
-
-    database.add_playlist(id_playlist, name_playlist, creator_id)
-
-    tracks = response_json["tracks"]["items"]
-
-    id_count = 1
-    for track in tracks:
-        # id = track["track"]['id']
-        id = id_count
-        name = track["track"]['name']
-        artist = track["track"]['artists'][0]['name']
-        album = track["track"]['album']['name']
-        preview_url = track["track"]['preview_url']
-
-        database.add_song(id_count, name, artist, album, preview_url)
-
-        database.add_song_to_playlist(id_playlist, id_count)
-        id_count += 1
-
-    return
 
 
 @app.get("/api/user/{user_id}/name")
@@ -145,12 +93,13 @@ def add_user(name: str, email: str, db: Session = Depends(get_db)):
 
 @app.get("/api/playlists/top")
 async def get_top_playlists(limit: int = 5):
-    all_playlists = database.get_all_playlist(offset=offset, limit=limit)
+    all_playlists = database.get_best_playlists(limit)
+    return {"playlists": all_playlists}
 
 
 @app.get("/api/playlist")
 async def get_all_playlists(offset: int = 0, limit: int = 10):
-    all_playlists = database.get_all_playlist(offset=offset, limit=limit)
+    all_playlists = database.get_all_playlists(offset=offset, limit=limit)
     return {"playlists": all_playlists}
 
 
@@ -176,3 +125,13 @@ async def search_songs(search_term: str):
     if not songs:
         raise HTTPException(status_code=404, detail="No songs found")
     return {"songs": songs}
+
+
+@app.get("/api/game/{playlist_id}")
+async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
+    songs = database.get_song_from_playlist(playlist_id,4)
+
+    actual_song = songs[random.randrange(4)]
+
+
+    return {"songs": songs,"actual_song": actual_song}

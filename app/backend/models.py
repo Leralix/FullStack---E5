@@ -53,7 +53,7 @@ class Playlist(Base):
     id = Column(Integer, primary_key=True, index=True)
     creator_id = Column(String)
     name = Column(String)
-    time_played = Column(Integer, default=0)
+    play_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.date.today())
 
     def get_id(self):
