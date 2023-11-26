@@ -68,6 +68,8 @@ class Playlist(Base):
     def get_album(self):
         return self.album
 
+    def add_to_play(self):
+        self.play_count = self.play_count + 1
 
 class PlaylistSong(Base):
     __tablename__ = 'table_playlist_song'

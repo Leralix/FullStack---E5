@@ -25,7 +25,7 @@ def get_userinfo(request: Request):
         return None
 
 
-async def backend_requesst(endpoint: str, params=None):
+async def backend_request(endpoint: str, params=None):
     async with httpx.AsyncClient() as clientT:
         response = await clientT.get(backend_url + endpoint,
                                      params=params)
@@ -63,7 +63,7 @@ async def display_playlists(request: Request):
 
 @app.get("/playlists")
 async def display_playlists(request: Request):
-    top_playlists = await backend_requesst("playlists/top")
+    top_playlists = await backend_request("playlists/top")
     top_playlists = top_playlists["playlists"]
 
     return templates.TemplateResponse("new_playlist.html",
@@ -72,7 +72,7 @@ async def display_playlists(request: Request):
 
 @app.get("/game/{playlist_id}")
 async def game_test(request: Request, playlist_id: str):
-    game = await backend_requesst("game/" + playlist_id)
+    game = await backend_request("game/" + playlist_id)
 
     songs = game["songs"]
     song_to_guess = game["actual_song"]

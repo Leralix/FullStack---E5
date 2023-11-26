@@ -56,7 +56,7 @@ async def startup():
 
     ################################################################
     # TEST ONLY
-    models.Base.metadata.drop_all(bind=database.engine)
+    #models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
     models.Base.metadata.create_all(bind=database.engine)
@@ -64,7 +64,7 @@ async def startup():
 
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    database.debug_create_test_playlists()
+    #database.debug_create_test_playlists()
 
     ##print(f"Ajout d'utilisateurs pour les tests...")
     # database.add_user("1", "MrTest", "MrTest@gmail.com")
@@ -130,7 +130,7 @@ async def search_songs(search_term: str):
 @app.get("/api/game/{playlist_id}")
 async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
     songs = database.get_song_from_playlist(playlist_id,4)
-
+    database.add_one_play(playlist_id)
     actual_song = songs[random.randrange(4)]
 
 
