@@ -22,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 def get_keycloak_admin_token():
     url = "https://localhost:8080/auth/realms/myrealm/protocol/openid-connect/token"
     payload = {
@@ -38,8 +39,6 @@ def get_keycloak_admin_token():
     return response_json["access_token"]
 
 
-
-
 def get_db():
     db = database.SessionLocal()
     try:
@@ -48,30 +47,31 @@ def get_db():
         db.close()
 
 
-
 @app.on_event("startup")
 async def startup():
     print("Lancement de la BDD...")
 
     ################################################################
     # TEST ONLY
-    #models.Base.metadata.drop_all(bind=database.engine)
+    models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
-
     models.Base.metadata.create_all(bind=database.engine)
-    
+    print(f"Succès !")
+
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    #add_playlist_to_database()
+    add_playlist_to_database()
 
-    print(f"Succès !")
-    print(f"Ajout d'utilisateurs pour les tests...")
-    #database.add_user("1", "MrTest", "MrTest@gmail.com")
-    #database.add_user("2", "MrDeuxieme", "MrDeuxieme@free.com")
-    print(f"Ajout d'utilisateurs terminé !")
+    ##print(f"Ajout d'utilisateurs pour les tests...")
+    # database.add_user("1", "MrTest", "MrTest@gmail.com")
+    # database.add_user("2", "MrDeuxieme", "MrDeuxieme@free.com")
+    ##print(f"Ajout d'utilisateurs terminé !")
+
 
 import base64
+
+
 def add_playlist_to_database():
     client_id = '03af55ee0a774b71a5504d693e34ba83'
     client_secret = '7c6090bff5b9434696350d5ba5eb0b35'
@@ -88,10 +88,8 @@ def add_playlist_to_database():
         "client_secret": client_secret
     }
 
-
-
-    content = requests.post(auth_url, headers=auth_headers ,data=auth_data)
-    print(content.json())
+    content = requests.post(auth_url, headers=auth_headers, data=auth_data)
+    # print(content.json())
     access_token = content.json()["access_token"]
 
     headers = {
@@ -107,14 +105,13 @@ def add_playlist_to_database():
 
     database.add_playlist(id_playlist, name_playlist, creator_id)
 
-
     tracks = response_json["tracks"]["items"]
 
     id_count = 1
     for track in tracks:
-        #id = track["track"]['id']
+        # id = track["track"]['id']
         id = id_count
-        name=track["track"]['name']
+        name = track["track"]['name']
         artist = track["track"]['artists'][0]['name']
         album = track["track"]['album']['name']
         preview_url = track["track"]['preview_url']
@@ -127,20 +124,13 @@ def add_playlist_to_database():
     return
 
 
-@app.get("/")
-def home():
-    return {"test":"zoup"}
-
-@app.get("/get-string")
-def get_string():
-    return {"message": "plouf"}
-
 @app.get("/api/user/{user_id}/name")
 def get_user_name(user_id: int):
     user = database.get_user_from_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"data": user.get_name()}
+
 
 @app.get("/api/user/add")
 def add_user(name: str, email: str, db: Session = Depends(get_db)):
@@ -153,46 +143,24 @@ def add_user(name: str, email: str, db: Session = Depends(get_db)):
     return {"status": "success", "message": "User added successfully"}
 
 
-@app.get("/update/{user_id}")
-def update_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    user.is_checked = not user.is_checked
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
+@app.get("/api/playlists/top")
+async def get_top_playlists(limit: int = 5):
+    all_playlists = database.get_all_playlist(offset=offset, limit=limit)
 
 
-@app.get("/delete/{user_id}")
-def delete(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    db.delete(user)
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
-
-
-@app.get("/get_values/")
-async def get_values_route():
-    all_values = database.get_all_values()
-    return {"values": all_values}
-
-
-
-## AJOUT PLAYLIST
 @app.get("/api/playlist")
-async def get_all_playlists(offset:int=0, limit:int=10):
+async def get_all_playlists(offset: int = 0, limit: int = 10):
     all_playlists = database.get_all_playlist(offset=offset, limit=limit)
     return {"playlists": all_playlists}
 
 
-@app.get("/api/playlist/{playlist_id}") 
+@app.get("/api/playlist/{playlist_id}")
 async def get_playlist(playlist_id: int):
     playlist = database.get_playlist(playlist_id)
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist not found")
     return {"data": playlist}
+
 
 @app.get("/api/songs/{song_id}")
 async def get_song(song_id: int):
@@ -208,6 +176,3 @@ async def search_songs(search_term: str):
     if not songs:
         raise HTTPException(status_code=404, detail="No songs found")
     return {"songs": songs}
-## FIN AJOUT PLAYLIST
-
-

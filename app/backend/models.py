@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, Integer, Boolean, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -51,7 +53,8 @@ class Playlist(Base):
     id = Column(Integer, primary_key=True, index=True)
     creator_id = Column(String)
     name = Column(String)
-    #created_at = Column(DateTime)
+    time_played = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.date.today())
 
     def get_id(self):
         return self.id
@@ -64,13 +67,15 @@ class Playlist(Base):
 
     def get_album(self):
         return self.album
-    
+
+
 class PlaylistSong(Base):
     __tablename__ = 'table_playlist_song'
 
     id = Column(Integer, primary_key=True, index=True)
     playlist_id = Column(Integer)
     song_id = Column(Integer)
+
     def get_id(self):
         return self.id
 
@@ -78,4 +83,4 @@ class PlaylistSong(Base):
         return self.playlist_id
 
     def get_song_id(self):
-        return self.song_id 
+        return self.song_id

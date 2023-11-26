@@ -46,6 +46,10 @@ async def display_playlists(request: Request):
   return templates.TemplateResponse("playlist.html",
                                       {"request": request})
 
+@app.get("/new_playlists")
+async def display_playlists(request: Request):
+  return templates.TemplateResponse("new_playlist.html",
+                                      {"request": request})
 
 @app.get("/playlists/{id}")
 async def specific_playlists(request: Request, id: int):
