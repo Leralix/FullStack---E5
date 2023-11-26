@@ -1,0 +1,42 @@
+<!-- FILEPATH: /c:/Users/gabriel/Documents/ESIEE E5/fullstack/FullStack---E5/app/frontend/templates/playlist_id.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Playlist</title>
+    <style>
+        .playlist {
+            overflow-y: scroll;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="playlist">
+        <ul id="musicList"></ul>
+    </div>
+
+    <script>
+        fetch('http://localhost:8081/api/playlist/{{ id_playlist }}', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            const musicList = document.getElementById('musicList');
+            data.data.song_in_playlist.forEach(music => {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                link.textContent = music.name;
+                link.href = `/songs/${music.id}`;
+                li.appendChild(link);
+                musicList.appendChild(li);
+            });
+        })
+        .catch(error => console.error(error));
+    </script>
+</body>
+</html>

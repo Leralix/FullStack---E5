@@ -41,6 +41,23 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html",
                                       {"request": request})
 
+@app.get("/playlists")
+async def display_playlists(request: Request):
+  return templates.TemplateResponse("playlist.html",
+                                      {"request": request})
+
+
+@app.get("/playlists/{id}")
+async def specific_playlists(request: Request, id: int):
+  return templates.TemplateResponse("playlist_id.html",
+                                      {"request": request, "id_playlist": id})
+
+
+@app.get("/songs/{id}")
+async def specific_songs(request: Request, id: int):
+    return templates.TemplateResponse("song_id.html",
+                                        {"request": request, "id_song": id})
+
 @app.post("/add")
 async def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...)):
     async with httpx.AsyncClient() as clientT:
@@ -116,10 +133,11 @@ def login_callback(request: Request, response: Response):
     else:
         #token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
         token = keycloak_openid.token(username="myuser", password="test")
-        request.session["Authorization"] = token['access_token']
+        #request.session["Authorization"] = token['access_token']
         response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
         print("TOKEN :",token)
-        return {"Info":token['access_token']}
+        return RedirectResponse("/profile")
+        #return {"Token":token}
 
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint

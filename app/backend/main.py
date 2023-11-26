@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 import database
 import models
@@ -12,6 +13,14 @@ url = "https://api.sampleapis.com/coffee/hot"
 response = requests.get(url)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 def get_keycloak_admin_token():
     url = "https://localhost:8080/auth/realms/myrealm/protocol/openid-connect/token"
@@ -170,5 +179,27 @@ async def get_values_route():
     return {"values": all_values}
 
 
+
+## AJOUT PLAYLIST
+@app.get("/api/playlist")
+async def get_all_playlists(offset:int=0, limit:int=10):
+    all_playlists = database.get_all_playlist(offset=offset, limit=limit)
+    return {"playlists": all_playlists}
+
+
+@app.get("/api/playlist/{playlist_id}") 
+async def get_playlist(playlist_id: int):
+    playlist = database.get_playlist(playlist_id)
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    return {"data": playlist}
+
+@app.get("/api/songs/{song_id}")
+async def get_song(song_id: int):
+    song = database.get_song(song_id)
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    return {"song": song}
+## FIN AJOUT PLAYLIST
 
 

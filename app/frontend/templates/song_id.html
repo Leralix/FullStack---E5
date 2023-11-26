@@ -1,0 +1,32 @@
+<!-- FILEPATH: /c:/Users/gabriel/Documents/ESIEE E5/fullstack/FullStack---E5/app/frontend/templates/song_id.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Song Details</title>
+</head>
+<body>
+    <h1>Song Details</h1>
+    <div id="song-details"></div>
+
+    <script>
+        // Get the song ID from the URL
+        const songId = "{{ id_song }}";
+        // Make an HTTP request to fetch the song details
+        fetch(`http://localhost:8081/api/songs/${songId}`)
+            .then(response => response.json())
+            .then(song => {
+                console.log(song);
+                // Display the song details on the page
+                const songDetailsElement = document.getElementById("song-details");
+                songDetailsElement.innerHTML = `
+                    <h2>${song.song.name}</h2>
+                    <p>Artist: ${song.song.artist}</p>
+                    <p>Album: ${song.song.album}</p>
+                `;
+            })
+            .catch(error => {
+                console.error("Error fetching song details:", error);
+            });
+    </script>
+</body>
+</html>

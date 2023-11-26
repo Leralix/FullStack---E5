@@ -94,13 +94,16 @@ def add_playlist(id,name,creator_id):
 
 def get_playlist(id):
     session = SessionLocal()
-    result = session.query().filter(Playlist.id == id).first()
-    session.close()
-    return result
+    result = session.query(Playlist).filter(Playlist.id == id).first()
+    song_in_playlist = session.query(Song.id, Song.name, Song.artist).select_from(Song).join(PlaylistSong, PlaylistSong.song_id == Song.id).filter(PlaylistSong.playlist_id == id).all()
 
-def get_all_playlist():
+    print(song_in_playlist)
+    session.close()
+    return {"name":result.name, "creator_id":result.creator_id, "song_in_playlist":[{"name":song.name, "artist":song.artist, "id":song.id} for song in song_in_playlist]}
+
+def get_all_playlist(offset:int=0, limit:int=10):
     session = SessionLocal()
-    results = session.query(Playlist).all()
+    results = session.query(Playlist).offset(offset).limit(limit).all()
     session.close()
     return [{"id": result.id, "name": result.name, "creator_id": result.creator_id} for result in results]
 
