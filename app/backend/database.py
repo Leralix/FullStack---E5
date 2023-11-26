@@ -217,7 +217,8 @@ def debug_create_test_playlists():
         '37i9dQZF1DZ06evO07P7oA',
         '37i9dQZF1DZ06evO1vjXFQ',
         '37i9dQZF1EQqedj0y9Uwvu',
-        '37i9dQZF1DX69KJk2S04Hp'
+        '37i9dQZF1DX69KJk2S04Hp',
+        '37i9dQZF1DZ06evO1iSDOl'
     ]
 
     base_link = 'https://api.spotify.com/v1/playlists/'

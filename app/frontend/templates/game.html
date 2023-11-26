@@ -1,26 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blind Test</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Home - BTO</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" />
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <!-- MDB -->
+    <link rel="stylesheet" href="/static/css/mdb.min.css" />
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="/static/css/our_css.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </head>
 <body>
-    <h1>Blind Test</h1>
+  <!--Main Navigation-->
+  <header>
 
-    <!-- Musique à deviner -->
-    <h2>Devinez la musique :</h2>
-    <audio controls autoplay>
-        <source src="{{ song_to_guess["preview_url"] }}" type="audio/mp3" autoplay>
-        Votre navigateur ne supporte pas l'élément audio.
-    </audio>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark d-none d-lg-block" style="z-index: 2000;">
+      <div class="container-fluid">
+        <!-- Navbar brand -->
+        <a class="navbar-brand me-2" id="mdb-navbar-brand-logo" href="/home">
+          <img src="/static/img/BTO-text.png" height="16" alt="" loading="lazy" style="margin-top: -1px">
+        </a>
+        <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarExample01"
+          aria-controls="navbarExample01" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fas fa-bars"></i>
+        </button>
 
-    <!-- Listes des musiques -->
-    <h2>Choisissez parmi ces 4 musiques :</h2>
-    <ul>
-        {% for song in songs %}
-            <li>{{ song.name }}</li>
-        {% endfor %}
-    </ul>
+          <div class="d-flex align-items-center">
+            <a href="/login">
+              <button data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2">
+                Se connecter
+              </button>
+            </a>
+            <a href="/register">
+              <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+                S'inscrire gratuitement
+              </button>
+            </a>
+
+            <a
+              data-mdb-ripple-init
+              class="btn btn-dark px-3"
+              href="https://github.com/Leralix/FullStack---E5"
+              role="button"
+              ><i class="fab fa-github"></i
+            ></a>
+          </div>
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <!-- Background + Cards -->
+    <div id="intro" class="bg-image shadow-2-strong">
+      <div class = "container custom-container ">
+
+        <h1>Blind Test</h1>
+
+        <!-- Musique à deviner -->
+        <h2>Devinez la musique :</h2>
+        <audio controls>
+            <source src="{{ song_to_guess['preview_url'] }}" type="audio/mp3" autoplay>
+            Votre navigateur ne supporte pas l'élément audio.
+        </audio>
+
+        <!-- Listes des musiques -->
+        <h2>Choisissez parmi ces 4 musiques :</h2>
+        <ul>
+            {% for song in songs %}
+                <li><a href="/game/{{playlist_id}}/{{question_number + 1}}">{{ song.name }}</a></li>
+            {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Custom scripts -->
+  <script type="text/javascript" src="/static/js/mdb.min.js"></script>
+  </script>
+  <!-- <script type="text/javascript" src="/static/js/script.js"></script> -->
 </body>
 </html>

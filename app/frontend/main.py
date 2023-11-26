@@ -55,12 +55,6 @@ async def home(request: Request):
                                       {"request": request})
 
 
-@app.get("/old_playlists")
-async def display_playlists(request: Request):
-    return templates.TemplateResponse("playlist.html",
-                                      {"request": request})
-
-
 @app.get("/playlists")
 async def display_playlists(request: Request):
     top_playlists = await backend_request("playlists/top")
@@ -69,16 +63,30 @@ async def display_playlists(request: Request):
     return templates.TemplateResponse("new_playlist.html",
                                       {"request": request, "top_playlists": top_playlists})
 
-
-@app.get("/game/{playlist_id}")
-async def game_test(request: Request, playlist_id: str):
+@app.get("/game/{playlist_id}/{question_number}")
+async def game_test(request: Request, playlist_id: str, question_number: int):
     game = await backend_request("game/" + playlist_id)
 
     songs = game["songs"]
     song_to_guess = game["actual_song"]
-    #return song_to_guess["preview_url"]
+
+    if question_number >= 10:
+        url = app.url_path_for("display_playlists")
+        return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
     return templates.TemplateResponse("game.html",
-                                      {"request": request, "songs": songs, "song_to_guess": song_to_guess})
+                                      {
+                                          "request": request,
+                                          "playlist_id": playlist_id,
+                                          "question_number": question_number,
+                                          "songs": songs,
+                                          "song_to_guess": song_to_guess})
+
+
+@app.get("/old_playlists")
+async def display_playlists(request: Request):
+    return templates.TemplateResponse("playlist.html",
+                                      {"request": request})
 
 
 @app.get("/playlists/{id}")
@@ -118,7 +126,6 @@ from keycloak import KeycloakOpenID
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 
 keycloak_url = "http://keycloak:8080/"
 client = "myclient"
