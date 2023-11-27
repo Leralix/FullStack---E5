@@ -223,9 +223,3 @@ async def create_auth_header(
 
 
 app.add_middleware(SessionMiddleware, secret_key="random")
-
-
-@app.get("/index")
-def send_page(request: Request):
-    return templates.TemplateResponse("base.html",
-                                      {"request": request})

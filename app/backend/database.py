@@ -255,7 +255,6 @@ def debug_create_test_playlists():
 def add_one_play(playlist_id):
     session = SessionLocal()
     result = session.query(Playlist).filter(Playlist.id == playlist_id).first()
-    print("added + 1")
     result.add_to_play()
     session.commit()
     session.close()
