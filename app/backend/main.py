@@ -59,7 +59,7 @@ async def startup():
     #models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
-    models.Base.metadata.create_all(bind=database.engine)
+    #models.Base.metadata.create_all(bind=database.engine)
     print(f"Succès !")
 
     ## AJOUTER DES DONNEES DANS BDD
@@ -94,6 +94,7 @@ def add_user(name: str, email: str, db: Session = Depends(get_db)):
 @app.get("/api/playlists/top")
 async def get_top_playlists(limit: int = 5):
     all_playlists = database.get_best_playlists(limit)
+    print(all_playlists)
     return {"playlists": all_playlists}
 
 

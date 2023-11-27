@@ -3,6 +3,8 @@ from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
+from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
+
 
 backend_url = "http://backend:8081/api/"
 
@@ -63,24 +65,103 @@ async def display_playlists(request: Request):
     return templates.TemplateResponse("new_playlist.html",
                                       {"request": request, "top_playlists": top_playlists})
 
+
+## FONCTION DE JEU
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import JSONResponse
+import random
+
+
+@app.get("/game/check_answer/{song_id}")
+async def check_answer(request: Request, response: Response, song_id :int):
+    true_answer = int(request.cookies.get("true_answer"))
+    state = request.query_params.get('state')
+    state_cookie = request.cookies["state"]
+
+
+    playlist_id = request.query_params.get('playlist_id')
+    question_number = request.query_params.get('question_number')
+
+    response = RedirectResponse(url="/game/" + str(playlist_id) + "/" + str(int(question_number)), status_code=status.HTTP_303_SEE_OTHER)
+
+    if state == state_cookie and song_id == true_answer:
+        current_score = request.cookies.get("score",0)
+        current_score = int(current_score) + 1
+        print("NEW SCORE :", current_score)
+        response.set_cookie(key="score", value=current_score, max_age=3600)
+        response.set_cookie(key="state", value="", max_age=3600)
+
+    return response
+
 @app.get("/game/{playlist_id}/{question_number}")
-async def game_test(request: Request, playlist_id: str, question_number: int):
+async def game_test(request: Request,  response: Response, playlist_id: str, question_number: int):
+
+    hash_random = random.getrandbits(128)
+
+
+    response.set_cookie(key="state", value=hash_random)
+
+
+    if "question_number" not in request.cookies:
+        request.cookies["question_number"] = 1
+    question_number_cookie = request.cookies["question_number"]
+
+
+
+    print(question_number_cookie)
+    print(question_number)
+
+    if int(question_number_cookie) != question_number:
+        url = app.url_path_for("game_test", playlist_id=playlist_id, question_number=1)
+        response = RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+        response.set_cookie(key="question_number", value=1, max_age=30)
+        return response
+    
+    if question_number >= 10:
+        score = request.cookies.get("score",0)
+        response = templates.TemplateResponse("result.html",
+                                      {
+                                          "request": request,
+                                          "response":response,
+                                          "score":score,
+                                          })
+    
+        response.set_cookie(key="question_number", value=1, max_age=30)
+        response.set_cookie(key="question_number", value=1, max_age=30)
+
+        if int(question_number_cookie) >=10:
+            return response
+        else:
+            return {"You tried to cheat!":"loser!"}
+    
+
+
+
+    
     game = await backend_request("game/" + playlist_id)
 
     songs = game["songs"]
     song_to_guess = game["actual_song"]
 
-    if question_number >= 10:
-        url = app.url_path_for("display_playlists")
-        return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
-
-    return templates.TemplateResponse("game.html",
+ 
+    response = templates.TemplateResponse("game.html",
                                       {
                                           "request": request,
+                                          "response":response,
                                           "playlist_id": playlist_id,
                                           "question_number": question_number,
+                                          "state":hash_random,
                                           "songs": songs,
                                           "song_to_guess": song_to_guess})
+
+    response.set_cookie(key="question_number", value=question_number+1, max_age=3600)
+    response.set_cookie(key="true_answer", value=song_to_guess['id'], max_age=300)
+    response.set_cookie(key="state", value=hash_random, max_age=300)
+    return response
+
+###
+
+
 
 
 @app.get("/old_playlists")
@@ -162,7 +243,6 @@ def display_userinfo(token: str = Depends(oauth2_scheme)):
 # FIN AJOUT AUTHENTIFICATION
 
 
-from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 
 
 @app.get("/login")
@@ -178,13 +258,11 @@ def login_callback(request: Request, response: Response):
     if code is None:
         return {"Info": "No Token"}
     else:
-        # token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
-        token = keycloak_openid.token(username="myuser", password="test")
-        # request.session["Authorization"] = token['access_token']
+        token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
+        #token = keycloak_openid.token(username="myuser", password="test")
         response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
-        print("TOKEN :", token)
-        return RedirectResponse("/profile")
-        # return {"Token":token}
+        #return RedirectResponse("/")
+        return {"Token":token}
 
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint

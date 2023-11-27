@@ -143,10 +143,11 @@ def get_all_playlists(offset: int = 0, limit: int = 10):
     session.close()
     return [{"id": result.id, "name": result.name, "creator_id": result.creator_id} for result in results]
 
+from sqlalchemy import desc
 
 def get_best_playlists(limit: int = 5):
     session = SessionLocal()
-    results = session.query(Playlist).order_by(Playlist.play_count).limit(limit).all()
+    results = session.query(Playlist).order_by(desc(Playlist.play_count)).limit(limit).all()
     session.close()
     return [{"play_count": result.play_count, "id": result.id, "name": result.name, "creator_id": result.creator_id} for
             result in results]

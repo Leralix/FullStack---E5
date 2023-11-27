@@ -75,7 +75,10 @@
         <h2>Choisissez parmi ces 4 musiques :</h2>
         <ul>
             {% for song in songs %}
+            <!--
                 <li><a href="/game/{{playlist_id}}/{{question_number + 1}}">{{ song.name }}</a></li>
+              -->
+              <li><a href="/game/check_answer/{{song.id}}?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}">{{ song.name }}</a></li>
             {% endfor %}
         </ul>
 
