@@ -65,6 +65,16 @@ async def display_playlists(request: Request):
     return templates.TemplateResponse("new_playlist.html",
                                       {"request": request, "top_playlists": top_playlists})
 
+@app.get("/import_playlist_spotify")
+async def import_playlist_spotify(request: Request):
+    return templates.TemplateResponse("import_playlist_spotify.html",
+                                      {"request": request})
+
+@app.get("/import_playlist_spotify/{playlist_url_id}")
+async def add_spotify_playlist(playlist_url_id: str):
+    result = await backend_request("add_spotify_playlist/" + playlist_url_id)
+    return result
+
 
 ## FONCTION DE JEU
 from starlette.middleware.sessions import SessionMiddleware
@@ -117,7 +127,7 @@ async def game_test(request: Request,  response: Response, playlist_id: str, que
         response.set_cookie(key="question_number", value=1, max_age=30)
         return response
     
-    if question_number >= 10:
+    if question_number >= 11:
         score = request.cookies.get("score",0)
         response = templates.TemplateResponse("result.html",
                                       {
@@ -260,10 +270,9 @@ def login_callback(request: Request, response: Response):
     else:
         token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
         #token = keycloak_openid.token(username="myuser", password="test")
+        response = RedirectResponse("/")
         response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
-        #return RedirectResponse("/")
-        return {"Token":token}
-
+        return response
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import Scope, Receive, Send

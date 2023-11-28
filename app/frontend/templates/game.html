@@ -66,6 +66,9 @@
 
         <!-- Musique à deviner -->
         <h2>Devinez la musique :</h2>
+
+
+        <img src="{{ song_to_guess['image_url'] }}" alt="album cover" width="300" height="300">
         <audio controls>
             <source src="{{ song_to_guess['preview_url'] }}" type="audio/mp3" autoplay>
             Votre navigateur ne supporte pas l'élément audio.
@@ -77,8 +80,11 @@
             {% for song in songs %}
             <!--
                 <li><a href="/game/{{playlist_id}}/{{question_number + 1}}">{{ song.name }}</a></li>
+                <li><a href="/game/check_answer/{{song.id}}?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}">{{ song.name }}</a></li>
+                <button style="background-color: rgba(128, 128, 128, 0.7); padding: 10px; margin: 5px; font-size: 20px;" onclick="location.href='/game/check_answer/{{song.id}}?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}'">{{ song.name }}</button>
+                <button style="width:20%;" type="button" class="btn btn-secondary btn-rounded" onclick="location.href='/game/check_answer/{{song.id}}?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}'" data-mdb-ripple-init>{{ song.name }}</button>
               -->
-              <li><a href="/game/check_answer/{{song.id}}?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}">{{ song.name }}</a></li>
+            <button class="song-button btn btn-secondary btn-rounded" style="width:20%;" id="song-{{ song.id }}" data-correct="{{ song.id == song_to_guess.id }}" onclick="checkAnswer({{ song.id }})" style="background-color: rgba(128, 128, 128, 0.7); padding: 10px; margin: 5px; font-size: 20px;" data-mdb-ripple-init>{{ song.name }}</button>
             {% endfor %}
         </ul>
 
@@ -89,6 +95,23 @@
   <!-- Custom scripts -->
   <script type="text/javascript" src="/static/js/mdb.min.js"></script>
   </script>
+  <script>
+    function checkAnswer(id) {
+        // Change the color of the buttons
+        document.querySelectorAll('.song-button').forEach(button => {
+            if (button.dataset.correct == 'True') {
+                button.style.backgroundColor = 'rgba(128 , 240 , 128, 0.7)';
+            } else {
+                button.style.backgroundColor = 'rgba( 240 , 128 , 128, 0.7)';
+            }
+        });
+    
+        // Redirect the user after a delay
+        setTimeout(() => {
+            location.href = '/game/check_answer/' + id + '?playlist_id={{playlist_id}}&question_number={{question_number + 1}}&state={{state}}';
+        }, 2000);
+    }
+    </script>
   <!-- <script type="text/javascript" src="/static/js/script.js"></script> -->
 </body>
 </html>

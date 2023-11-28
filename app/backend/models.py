@@ -33,6 +33,8 @@ class Song(Base):
     artist = Column(String)
     album = Column(String)
     preview_url = Column(String)
+    image_url = Column(String)
+    id_spotify = Column(String)
 
     def get_id(self):
         return self.id
@@ -55,6 +57,8 @@ class Playlist(Base):
     name = Column(String)
     play_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.date.today())
+    image_url = Column(String)
+    id_spotify = Column(String)
 
     def get_id(self):
         return self.id

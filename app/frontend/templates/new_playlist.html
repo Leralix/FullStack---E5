@@ -74,7 +74,10 @@
               
               <a href="/game/{{playlist.id}}/1">
                 
+                <!---
                 <img src="static/img/home-cards-create.jpg"  class="card-img-top rounded-9" alt="img">
+                -->
+                <img src="{{ playlist.image_url }}" class="card-img-top rounded-9" alt="img">
                 <div class="card-body">
                   <h5 class="p-2 text-white">{{ playlist.name }}</h5>
                 </div>
@@ -87,11 +90,81 @@
 
 
     </div>
-  </header>
   <!--Main Navigation-->
+  
+
+  <script>
+    let timeoutId;
+
+    function searchSongs() {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        const query = document.getElementById('searchInput').value;
+        const url = `http://localhost:8081/api/search_playlist/${query}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const songsList = document.getElementById('songsList');
+                songsList.innerHTML = '';
+                data.playlists.playlist_founded.forEach(song => {
+                    const listItem = document.createElement('li');
+
+                    // Create an img element for the playlist image
+                    const img = document.createElement('img');
+                    img.classList.add('card-img-top');
+                    img.classList.add('rounded-9');
+                    img.src = song.image_url;
+                    img.alt = song.name;
+                    listItem.appendChild(img);
+
+                    const link = document.createElement('a');
+                    link.textContent = song.name;
+                    link.href = `/songs/${song.id}`;
+                    listItem.appendChild(link);
+
+                    songsList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Une erreur s\'est produite lors de la recherche des chansons:', error);
+            });
+    }, 500);
+}
+</script>
+<title>Recherche de playlist</title>
+    <style>
+        #searchContainer {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        #songsList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style-type: none;
+            padding: 0;
+        }
+        #songsList li {
+            flex-basis: 20%; /* 5 items per row */
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" oninput="searchSongs()" placeholder="Rechercher une playlist...">
+    </div>
+
+    <ul id="songsList"></ul>
 
   <!-- Custom scripts -->
   <script type="text/javascript" src="static/js/mdb.min.js"></script>
   <script type="text/javascript" src="static/js/script.js"></script>
+
+</header>
+
 </body>
+
+
 </html>

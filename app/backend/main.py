@@ -128,11 +128,22 @@ async def search_songs(search_term: str):
     return {"songs": songs}
 
 
+@app.get("/api/search_playlist/{search_term}")
+async def search_songs(search_term: str):
+    playlists = database.search_playlists(search_term)
+    if not playlists:
+        raise HTTPException(status_code=404, detail="No songs found")
+    print(playlists)
+    return {"playlists": playlists}
+
 @app.get("/api/game/{playlist_id}")
 async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
     songs = database.get_song_from_playlist(playlist_id,4)
     database.add_one_play(playlist_id)
     actual_song = songs[random.randrange(4)]
-
-
     return {"songs": songs,"actual_song": actual_song}
+
+
+@app.get("/api/add_spotify_playlist/{playlist_url_id}")
+async def get_one_game(playlist_url_id: str):
+    return database.add_spotify_playlist(playlist_url_id)

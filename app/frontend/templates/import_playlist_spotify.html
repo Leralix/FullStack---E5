@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Playlist Spotify</title>
+</head>
+<body>
+    <input type="text" id="playlist-url" placeholder="URL de la playlist Spotify">
+    <button onclick="importPlaylist()">Importer</button>
+    <div id="loading" style="display: none;"><img src="loading.gif" alt="Loading..."></div>
+    <div id="done" style="display: none;">Importation terminée</div>
+    <script>
+        function importPlaylist() {
+            var playlistUrl = document.getElementById("playlist-url").value;
+            var parts = playlistUrl.split('/');
+            var playlistId = parts[parts.indexOf('playlist') + 1];
+
+            // Remove anything after the '?'
+            playlistId = playlistId.split('?')[0];
+
+            // Show the loading animation
+            document.getElementById("loading").style.display = "block";
+        
+            // Call the endpoint
+            fetch('/import_playlist_spotify/' + encodeURIComponent(playlistId))
+                .then(response => response.json())
+                .then(data => {
+                    // Hide the loading animation
+                    document.getElementById("loading").style.display = "none";
+
+                    // Show the done message
+                    document.getElementById("done").textContent = data;  // Add this line
+                    document.getElementById("done").style.display = "block";
+
+                });
+        }
+    </script>
+</body>
+</html>
