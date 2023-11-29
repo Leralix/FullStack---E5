@@ -1,3 +1,5 @@
+from typing import Callable
+
 import uvicorn
 import requests
 
@@ -9,14 +11,34 @@ from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 from authlib.integrations.starlette_client import OAuth
 
+
+from fastapi_oidc import IDToken
+from fastapi_oidc import get_auth
+
+
+backend_url = "http://backend:8081/api/"
 keycloak_url = "http://localhost:8080/"
 client = "myclient"
+client_secret = "f3OxXdBBT8ze6WO94Xm0q4pbPb0D2nkG"
 realm = "myrealm"
+
+OIDC_config = {
+    "client_id": client,
+    "base_authorization_server_uri": "http://keycloak:8080/realms/myrealm/protocol/openid-connect/auth",
+    "issuer": "http://keycloak:8080/realms/myrealm",
+    "signature_cache_ttl": 3600,
+}
+
+authenticate_user: Callable = get_auth(**OIDC_config)
+
+
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
     tokenUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
 )
+
+
 keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080",
                                  client_id=client,
                                  realm_name=realm)

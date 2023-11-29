@@ -4,7 +4,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: app/backend/Dockerfile
+      dockerfile: app/frontend/Dockerfile
     volumes:
       - ./app/frontend:/app
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--reload" ]
@@ -23,7 +23,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: app/frontend/Dockerfile
+      dockerfile: app/backend/Dockerfile
     volumes:
       - ./app/backend:/app
     command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081", "--reload" ]

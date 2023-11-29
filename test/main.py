@@ -16,7 +16,7 @@ oauth.register(
     name='keycloak',
     server_metadata_url=CONF_URL,
     client_id='myclient',
-    #client_secret='haCx6kKNefSB1y2tP7Iu44VAz3rtdSEc',
+    client_secret='haCx6kKNefSB1y2tP7Iu44VAz3rtdSEc',
     client_kwargs={
         'scope': 'openid'
     }
