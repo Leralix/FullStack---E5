@@ -334,11 +334,20 @@ def add_spotify_playlist(spotify_url_id:str):
             album = track["track"]['album']['name']
             preview_url = track["track"]['preview_url']
             image_url = track['track']['album']['images'][0]['url']
+            id_spotify_song = track['track']['id']
 
-            if song_exists(id_spotify):
-                return "A song with the same id already exists. Not adding the new song."
+            if song_exists(id_spotify_song):
+
+                session = SessionLocal()
+                # Query the database for a playlist with the same image_url
+                song_id = session.query(Song).filter(Song.id_spotify == id_spotify_song).first().id
+                add_song_to_playlist(id_playlist, song_id)
+                session.commit()
+                session.close()
+                continue
+                 
             
-            song_id = add_song(name, artist, album, preview_url, image_url)
+            song_id = add_song(name, artist, album, preview_url, image_url, id_spotify_song)
             add_song_to_playlist(id_playlist, song_id)
 
     return "Playlist added successfully!"
