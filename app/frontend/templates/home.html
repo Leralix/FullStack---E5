@@ -32,8 +32,12 @@
           aria-controls="navbarExample01" aria-expanded="false" aria-label="Toggle navigation">
           <i class="fas fa-bars"></i>
         </button>
-
           <div class="d-flex align-items-center">
+            {% if userinfo %}
+            <a class="nav-link text-white" href="/profile" rel="nofollow" target="_blank">
+              {{userinfo.preferred_username}}
+            </a>
+            {% else %}
             <a href="/login">
               <button data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2">
                 Se connecter
@@ -52,6 +56,7 @@
               role="button"
               ><i class="fab fa-github"></i
             ></a>
+            {% endif %}
           </div>
       </div>
     </nav>

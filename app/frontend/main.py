@@ -50,9 +50,9 @@ async def register(request: Request):
 
 
 @app.get("/home")
-async def home(request: Request):
+async def home(request: Request, userinfo=Depends(get_userinfo)):
     return templates.TemplateResponse("home.html",
-                                      {"request": request})
+                                      {"request": request, "userinfo": userinfo})
 
 
 @app.get("/playlists")
@@ -62,6 +62,7 @@ async def display_playlists(request: Request):
 
     return templates.TemplateResponse("new_playlist.html",
                                       {"request": request, "top_playlists": top_playlists})
+
 
 @app.get("/game/{playlist_id}/{question_number}")
 async def game_test(request: Request, playlist_id: str, question_number: int):
@@ -108,16 +109,16 @@ async def search_songs(request: Request):
 
 
 @app.post("/add")
-async def add_user(name: str = Form(...), email: str = Form(...), password: str = Form(...)):
+async def add_user(name: str = Form(...), username: str = Form(...), email: str = Form(...), password: str = Form(...)):
     async with httpx.AsyncClient() as clientT:
         response = await clientT.get(backend_url + "user/add",
-                                     params={"name": name, "email": email, "password": password})
+                                     params={"name": name, "username": username, "email": email, "password": password})
 
         if response.status_code == 200:
             url = app.url_path_for("home")
             return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
         else:
-            return {"error": "error"}
+            return {"error": response}
 
 
 # PARTIE AUTHNETIFICATION AVEC KEYCLOAK
@@ -130,6 +131,7 @@ from starlette.middleware.sessions import SessionMiddleware
 keycloak_url = "http://keycloak:8080/"
 client = "myclient"
 realm = "myrealm"
+client_secret = "AeoGpniCFRXJglUQs6MkVJOQMARXs7d4"
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
@@ -139,7 +141,7 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 keycloak_openid = KeycloakOpenID(
     server_url=keycloak_url,
     client_id=client,
-    client_secret_key="LnJQY5BhA536nrEHA1piKeYpjIjox6US",
+    client_secret_key=client_secret,
     realm_name=realm,
     verify=True)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -167,23 +169,30 @@ from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 
 @app.get("/login")
 def login_page(request: Request):
-    return RedirectResponse(
-        "http://localhost:8080/realms/myrealm/protocol/openid-connect/auth?client_id=myclient&response_type=code&scope=openid&redirect_uri=http://localhost:5000/login/callback/")
-    # return templates.TemplateResponse("new_login.html",{"request": request})
+    return templates.TemplateResponse("new_login.html",{"request": request})
 
+
+@app.post("/login")
+def login_page_post(request: Request, email: str = Form(...), password: str = Form(...)):
+    print("test")
+    token = keycloak_openid.token(username="test", password="test")
+    response = RedirectResponse("home")
+    response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
+    return response
 
 @app.get("/login/callback/")
 def login_callback(request: Request, response: Response):
     code = request.query_params.get("code")
+    print("tesssetysetgesgeszg")
     if code is None:
         return {"Info": "No Token"}
     else:
         # token = keycloak_openid.token(code=code, grant_type="authorization_code", redirect_uri="http://localhost:5000/login/callback/")
-        token = keycloak_openid.token(username="myuser", password="test")
+        token = keycloak_openid.token(username="test", password="test")
         # request.session["Authorization"] = token['access_token']
+        response = RedirectResponse("/home")
         response.set_cookie(key="Authorization", value=token['access_token'], httponly=True, max_age=3600)
-        print("TOKEN :", token)
-        return RedirectResponse("/profile")
+        return response
         # return {"Token":token}
 
 

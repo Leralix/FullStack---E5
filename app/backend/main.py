@@ -2,9 +2,12 @@ import random
 
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from keycloak import KeycloakOpenID, KeycloakOpenIDConnection, KeycloakAdmin
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,10 +15,25 @@ import database
 import models
 import requests
 
-url = "https://api.sampleapis.com/coffee/hot"
-response = requests.get(url)
-
 app = FastAPI()
+
+keycloak_url = "http://keycloak:8080/"
+client = "myclient"
+realm = "myrealm"
+client_secret = "AeoGpniCFRXJglUQs6MkVJOQMARXs7d4"
+
+oauth2_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
+    tokenUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
+)
+
+keycloak_openid = KeycloakOpenID(
+    server_url=keycloak_url,
+    client_id=client,
+    client_secret_key=client_secret,
+    realm_name=realm,
+    verify=True)
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,6 +42,23 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+from keycloak import KeycloakOpenID
+from keycloak import KeycloakAdmin
+
+# Informations de configuration
+server_url = "http://keycloak:8080/"
+admin_username = "admin"
+admin_password = "admin"
+realm_name = "master"
+client_id = "testclient"
+client_secret = "g7Dk5eD3h4tL9uqHNqVzB2qji4YvmCcE"
+
+# Initialisation de KeycloakAdmin pour l'administration
+keycloak_admin = KeycloakAdmin(server_url=server_url,
+                               username=admin_username,
+                               password=admin_password)
+
 
 
 def get_keycloak_admin_token():
@@ -56,7 +91,7 @@ async def startup():
 
     ################################################################
     # TEST ONLY
-    #models.Base.metadata.drop_all(bind=database.engine)
+    # models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
     models.Base.metadata.create_all(bind=database.engine)
@@ -64,7 +99,7 @@ async def startup():
 
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    #database.debug_create_test_playlists()
+    # database.debug_create_test_playlists()
 
     ##print(f"Ajout d'utilisateurs pour les tests...")
     # database.add_user("1", "MrTest", "MrTest@gmail.com")
@@ -81,12 +116,22 @@ def get_user_name(user_id: int):
 
 
 @app.get("/api/user/add")
-def add_user(name: str, email: str, db: Session = Depends(get_db)):
+def add_user(name: str, username: str, email: str, password: str, db: Session = Depends(get_db)):
     new_user = models.User()
     new_user.name = name
     new_user.email = email
     db.add(new_user)
     db.commit()
+    print("Création d'un nouvel utilisateur")
+    new_user = keycloak_admin.create_user(
+        {"email": email,
+         "username": username,
+         "enabled": True,
+         "firstName": name,
+         "lastName": "lastnametest"})
+
+    keycloak_admin.create_user(new_user)
+    print("Succès !")
 
     return {"status": "success", "message": "User added successfully"}
 
@@ -129,9 +174,8 @@ async def search_songs(search_term: str):
 
 @app.get("/api/game/{playlist_id}")
 async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
-    songs = database.get_song_from_playlist(playlist_id,4)
+    songs = database.get_song_from_playlist(playlist_id, 4)
     database.add_one_play(playlist_id)
     actual_song = songs[random.randrange(4)]
 
-
-    return {"songs": songs,"actual_song": actual_song}
+    return {"songs": songs, "actual_song": actual_song}
