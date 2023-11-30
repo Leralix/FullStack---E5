@@ -22,10 +22,18 @@ client = "myclient"
 realm = "myrealm"
 client_secret = "AeoGpniCFRXJglUQs6MkVJOQMARXs7d4"
 
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
     tokenUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
 )
+
+# Configure client
+keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+                                 client_id="myclient",
+                                 realm_name="myrealm",
+                                 client_secret_key="f3OxXdBBT8ze6WO94Xm0q4pbPb0D2nkG")
 
 keycloak_openid = KeycloakOpenID(
     server_url=keycloak_url,
@@ -179,3 +187,9 @@ async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
     actual_song = songs[random.randrange(4)]
 
     return {"songs": songs, "actual_song": actual_song}
+
+@app.get("/protected")
+def protected(token: str = Depends(oauth2_scheme)):
+    return {
+        "user_infos": token
+    }

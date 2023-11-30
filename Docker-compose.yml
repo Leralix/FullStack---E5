@@ -3,11 +3,11 @@ version: "3.9"
 services:
   frontend:
     build:
-      context: .
-      dockerfile: app/frontend/Dockerfile
+      context: ./app/frontend/
+      dockerfile: Dockerfile
     volumes:
-      - ./app/frontend:/app
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--reload" ]
+      - .:/app
+    command: ["flask", "run", "-p 5000"]
     ports:
       - "5000:5000"
     env_file:
