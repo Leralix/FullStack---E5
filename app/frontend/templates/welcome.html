@@ -70,11 +70,13 @@
               </a>
             </li>
             {% if userinfo %}
-            <a class="nav-link" href="/profile" rel="nofollow" target="_blank">
-              {{userinfo}}
-            </a>
+            <a class="nav-link" href="/profile" target="_blank">Bienvenue {{userinfo.data.preferred_username}}</a>
             {% else %}
-
+            <a href="/profile">
+              <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+                Se connecter
+              </button>
+            </a>
             {% endif %}
 
           </ul>
@@ -98,7 +100,7 @@
               {% if userinfo %}
 
               {% else %}
-                <a class="btn btn-outline-light btn-lg m-2" href="/register" role="button"
+                <a class="btn btn-outline-light btn-lg m-2" href="/profile" role="button"
                 rel="nofollow">Inscription</a>
               {% endif %}
               <a class="btn btn-outline-light btn-lg m-2" href="/home"

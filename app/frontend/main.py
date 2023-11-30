@@ -3,7 +3,7 @@ import logging
 import httpx
 from flask import Flask, g, request, make_response, session, redirect
 from flask import Flask, request, render_template, session, jsonify
-
+from oauth2client.client import OAuth2Credentials
 import json
 from flask_oidc import OpenIDConnect
 
@@ -35,62 +35,39 @@ oidc = OpenIDConnect(app)
 
 @app.before_request
 def before_request():
-
     if oidc.user_loggedin:
         pass
     else:
         g.user = None
 
-@app.route("/")
-def welcome():
-    info = oidc.user_getinfo(['preferred_username', 'email', 'sub'])
+def get_user_data():
 
-    username = info.get('preferred_username')
-    email = info.get('email')
-    user_id = info.get('sub')
-
+    user_data = None
     if oidc.user_loggedin:
         try:
-            from oauth2client.client import OAuth2Credentials
-            # access_token = OAuth2Credentials.from_json(oidc.credentials_store[user_id]).access_token
             access_token = oidc.get_access_token()
             headers = {'Authorization': 'Bearer %s' % (access_token)}
-            # YOLO
-            greeting = requests.get('http://127.0.0.1:8081/protected', headers=headers).text
+            user_data = requests.get('http://backend:8081/user_data', headers=headers).json()
         except:
-            greeting = "Hello %s" % username
+            user_data = "404"
 
-    return render_template("welcome.html", userinfo=greeting)
+    return user_data
+
+@app.route("/")
+def welcome():
+    return render_template("welcome.html", userinfo=get_user_data())
+
 
 @app.route("/home")
 def home():
-    info = oidc.user_getinfo(['preferred_username', 'email', 'sub'])
+    return render_template("home.html", userinfo=get_user_data())
 
-    username = info.get('preferred_username')
-    email = info.get('email')
-    user_id = info.get('sub')
-
-    if oidc.user_loggedin:
-        try:
-            from oauth2client.client import OAuth2Credentials
-            # access_token = OAuth2Credentials.from_json(oidc.credentials_store[user_id]).access_token
-            access_token = oidc.get_access_token()
-            headers = {'Authorization': 'Bearer %s' % (access_token)}
-            # YOLO
-            greeting = requests.get('http://127.0.0.1:8081/protected', headers=headers).text
-        except:
-            greeting = "Hello %s" % username
-    return render_template("home.html", userinfo=greeting)
-
-@app.route("/register")
-def register():
-    return render_template("new_register.html")
 
 @app.route("/playlists")
 async def display_playlists():
     top_playlists = await backend_request("playlists/top")
     top_playlists = top_playlists["playlists"]
-    return render_template("new_playlist.html", top_playlists=top_playlists)
+    return render_template("new_playlist.html", userinfo=get_user_data(), top_playlists=top_playlists)
 
 @app.route("/game/<playlist_id>/<int:question_number>")
 async def game_test(playlist_id, question_number):
@@ -99,7 +76,7 @@ async def game_test(playlist_id, question_number):
     song_to_guess = game["actual_song"]
 
     if question_number >= 10:
-        return redirect(url_for("display_playlists"))
+        return redirect("/home")
 
     return render_template("game.html", playlist_id=playlist_id, question_number=question_number, songs=songs, song_to_guess=song_to_guess)
 
@@ -134,9 +111,19 @@ async def add_user():
             return jsonify({"error": response.text})
 
 @app.route("/profile")
+@oidc.require_login
 def display_userinfo():
+    user_info = None
 
-    return jsonify({"userinfo": "jean michel test"})
+    if oidc.user_loggedin:
+        try:
+            access_token = oidc.get_access_token()
+            headers = {'Authorization': 'Bearer %s' % (access_token)}
+            user_info = requests.get('http://backend:8081/user_data', headers=headers).json()
+        except:
+            user_info = "404"
+
+    return user_info
 
 @app.route("/login")
 def login_page():
@@ -164,27 +151,21 @@ def hello_world():
 @app.route('/private')
 @oidc.require_login
 def hello_me():
-    """Example for protected endpoint that extracts private information from the OpenID Connect id_token.
-       Uses the accompanied access_token to access a backend service.
-    """
-
-    info = oidc.user_getinfo(['preferred_username', 'email', 'sub'])
-
-    username = info.get('preferred_username')
-    email = info.get('email')
-    user_id = info.get('sub')
 
     if oidc.user_loggedin:
-        try:
-            from oauth2client.client import OAuth2Credentials
-            # access_token = OAuth2Credentials.from_json(oidc.credentials_store[user_id]).access_token
-            access_token = oidc.get_access_token()
-            headers = {'Authorization': 'Bearer %s' % (access_token)}
-            # YOLO
-            greeting = requests.get('http://127.0.0.1:8081/protected', headers=headers).text
-        except:
-            greeting = "Hello %s" % username
 
+        info = oidc.user_getinfo(['preferred_username', 'email', 'sub'])
+
+        username = info.get('preferred_username')
+        user_id = info.get('sub')
+
+        # access_token = OAuth2Credentials.from_json(oidc.credentials_store[user_id]).access_token
+        access_token = oidc.get_access_token()
+        greeting = access_token
+        headers = {'Authorization': f'Bearer {access_token}'}
+        # YOLO
+        greeting = requests.get('http://backend:8081/user_data', headers=headers).json()
+        email = greeting["user_infos"]["email"]
 
     return ("""%s your email is %s and your user_id is %s!
                <ul>

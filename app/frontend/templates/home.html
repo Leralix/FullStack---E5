@@ -33,17 +33,21 @@
           <i class="fas fa-bars"></i>
         </button>
           <div class="d-flex align-items-center">
+
             {% if userinfo %}
-            <a class="nav-link text-white" href="/profile" rel="nofollow" target="_blank">
-              {{userinfo.preferred_username}}
+            <a href="/profile">
+              <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+                Votre Profil
+              </button>
             </a>
+
             {% else %}
-            <a href="/login">
+            <a href="/profile">
               <button data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2">
                 Se connecter
               </button>
             </a>
-            <a href="/register">
+            <a href="/profile">
               <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
                 S'inscrire gratuitement
               </button>

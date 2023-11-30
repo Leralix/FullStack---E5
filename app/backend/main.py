@@ -2,7 +2,7 @@ import random
 
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from fastapi.encoders import jsonable_encoder
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from keycloak import KeycloakOpenID, KeycloakOpenIDConnection, KeycloakAdmin
@@ -22,7 +22,7 @@ client = "myclient"
 realm = "myrealm"
 client_secret = "AeoGpniCFRXJglUQs6MkVJOQMARXs7d4"
 
-#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=f"{keycloak_url}realms/{realm}/protocol/openid-connect/auth",
@@ -66,7 +66,6 @@ client_secret = "g7Dk5eD3h4tL9uqHNqVzB2qji4YvmCcE"
 keycloak_admin = KeycloakAdmin(server_url=server_url,
                                username=admin_username,
                                password=admin_password)
-
 
 
 def get_keycloak_admin_token():
@@ -188,8 +187,7 @@ async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
 
     return {"songs": songs, "actual_song": actual_song}
 
-@app.get("/protected")
+
+@app.get("/user_data")
 def protected(token: str = Depends(oauth2_scheme)):
-    return {
-        "user_infos": token
-    }
+    return {"data": keycloak_openid.userinfo(token)}
