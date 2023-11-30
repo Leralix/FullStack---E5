@@ -137,7 +137,7 @@ async def game_test(request: Request,  response: Response, playlist_id: str, que
                                           })
     
         response.set_cookie(key="question_number", value=1, max_age=30)
-        response.set_cookie(key="question_number", value=1, max_age=30)
+        response.set_cookie(key="score", value=0, max_age=3600)
 
         if int(question_number_cookie) >=10:
             return response

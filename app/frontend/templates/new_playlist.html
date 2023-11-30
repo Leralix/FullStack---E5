@@ -89,6 +89,27 @@
 
 
 
+
+      <title>Recherche de playlist</title>
+    <style>
+
+        #songsList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style-type: none;
+            padding: 0;
+        }
+        #songsList li {
+            flex-basis: 20%; /* 5 items per row */
+            text-align: center;
+        }
+    </style>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" oninput="searchSongs()" placeholder="Rechercher une playlist...">
+    </div>
+
+    <ul id="songsList"></ul>
     </div>
   <!--Main Navigation-->
   
@@ -131,32 +152,7 @@
     }, 500);
 }
 </script>
-<title>Recherche de playlist</title>
-    <style>
-        #searchContainer {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        #songsList {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            list-style-type: none;
-            padding: 0;
-        }
-        #songsList li {
-            flex-basis: 20%; /* 5 items per row */
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <div id="searchContainer">
-        <input type="text" id="searchInput" oninput="searchSongs()" placeholder="Rechercher une playlist...">
-    </div>
 
-    <ul id="songsList"></ul>
 
   <!-- Custom scripts -->
   <script type="text/javascript" src="static/js/mdb.min.js"></script>
