@@ -6,7 +6,7 @@ services:
       context: ./app/frontend/
       dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - ./app/frontend/:/app
     command: ["flask", "run", "-p 5000"]
     ports:
       - "5000:5000"

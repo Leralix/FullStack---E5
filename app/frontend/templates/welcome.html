@@ -71,7 +71,7 @@
             </li>
             {% if userinfo %}
             <a class="nav-link" href="/profile" rel="nofollow" target="_blank">
-              {{userinfo.preferred_username}}
+              {{userinfo}}
             </a>
             {% else %}
 
@@ -98,11 +98,12 @@
               {% if userinfo %}
 
               {% else %}
-              <a class="btn btn-outline-light btn-lg m-2" href="/register" role="button"
-              rel="nofollow">Créer un compte</a>
-              <a class="btn btn-outline-light btn-lg m-2" href="/new_login"
-              role="button">Se connecter</a>
+                <a class="btn btn-outline-light btn-lg m-2" href="/register" role="button"
+                rel="nofollow">Inscription</a>
               {% endif %}
+              <a class="btn btn-outline-light btn-lg m-2" href="/home"
+              role="button">Jouer</a>
+
 
           </div>
         </div>
