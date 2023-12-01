@@ -4,6 +4,7 @@ import httpx
 from flask import Flask, g, request, make_response, session, redirect
 from flask import Flask, request, render_template, session, jsonify
 from flask_oidc import OpenIDConnect
+from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 
 from os.path import join, dirname, realpath
 import requests
@@ -11,6 +12,7 @@ import requests
 UPLOADS_PATH = join(dirname(realpath(__file__)), 'client_secrets.json')
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 backend_url = "http://backend:8081/api/"
 
@@ -192,3 +194,110 @@ async def backend_request(endpoint: str, params=None):
 
         else:
             return {"error": "error"}
+
+
+@app.get("/import_playlist_spotify")
+async def import_playlist_spotify(request: Request):
+    return templates.TemplateResponse("import_playlist_spotify.html",
+                                      {"request": request})
+
+@app.get("/import_playlist_spotify/{playlist_url_id}")
+async def add_spotify_playlist(playlist_url_id: str):
+    result = await backend_request("add_spotify_playlist/" + playlist_url_id)
+    return result
+
+
+## FONCTION DE JEU
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import JSONResponse
+import random
+
+
+@app.get("/game/check_answer/{song_id}")
+async def check_answer(request: Request, response: Response, song_id :int):
+    true_answer = int(request.cookies.get("true_answer"))
+    state = request.query_params.get('state')
+    state_cookie = request.cookies["state"]
+
+
+    playlist_id = request.query_params.get('playlist_id')
+    question_number = request.query_params.get('question_number')
+
+    response = RedirectResponse(url="/game/" + str(playlist_id) + "/" + str(int(question_number)), status_code=status.HTTP_303_SEE_OTHER)
+
+    if state == state_cookie and song_id == true_answer:
+        current_score = request.cookies.get("score",0)
+        current_score = int(current_score) + 1
+        print("NEW SCORE :", current_score)
+        response.set_cookie(key="score", value=current_score, max_age=3600)
+        response.set_cookie(key="state", value="", max_age=3600)
+
+    return response
+
+@app.get("/game/{playlist_id}/{question_number}")
+async def game_test(request: Request,  response: Response, playlist_id: str, question_number: int):
+
+    hash_random = random.getrandbits(128)
+
+
+    response.set_cookie(key="state", value=hash_random)
+
+
+    if "question_number" not in request.cookies:
+        request.cookies["question_number"] = 1
+    question_number_cookie = request.cookies["question_number"]
+
+
+
+    print(question_number_cookie)
+    print(question_number)
+
+    if int(question_number_cookie) != question_number:
+        url = app.url_path_for("game_test", playlist_id=playlist_id, question_number=1)
+        response = RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+        response.set_cookie(key="question_number", value=1, max_age=30)
+        return response
+    
+    if question_number >= 11:
+        score = request.cookies.get("score",0)
+        response = templates.TemplateResponse("result.html",
+                                      {
+                                          "request": request,
+                                          "response":response,
+                                          "score":score,
+                                          })
+    
+        response.set_cookie(key="question_number", value=1, max_age=30)
+        response.set_cookie(key="score", value=0, max_age=3600)
+
+        if int(question_number_cookie) >=10:
+            return response
+        else:
+            return {"You tried to cheat!":"loser!"}
+    
+
+
+
+    
+    game = await backend_request("game/" + playlist_id)
+
+    songs = game["songs"]
+    song_to_guess = game["actual_song"]
+
+ 
+    response = templates.TemplateResponse("game.html",
+                                      {
+                                          "request": request,
+                                          "response":response,
+                                          "playlist_id": playlist_id,
+                                          "question_number": question_number,
+                                          "state":hash_random,
+                                          "songs": songs,
+                                          "song_to_guess": song_to_guess})
+
+    response.set_cookie(key="question_number", value=question_number+1, max_age=3600)
+    response.set_cookie(key="true_answer", value=song_to_guess['id'], max_age=300)
+    response.set_cookie(key="state", value=hash_random, max_age=300)
+    return response
+
+

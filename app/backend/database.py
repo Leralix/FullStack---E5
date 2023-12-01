@@ -59,9 +59,9 @@ def get_all_users():
 
 ###Partie
 
-def add_song(name, artist, album, preview_url):
+def add_song(name, artist, album, preview_url, image_url, spotify_id):
     session = SessionLocal()
-    new_song = Song(name=name, artist=artist, album=album, preview_url=preview_url)
+    new_song = Song(name=name, artist=artist, album=album, preview_url=preview_url, image_url=image_url, id_spotify=spotify_id)
     session.add(new_song)
     session.commit()
     song_id = new_song.id
@@ -111,11 +111,30 @@ def search_songs(search_term: str):
                              results]}
 
 
+def search_playlists(search_term: str):
+    encoded_search_query = quote(search_term)
+    subterms = encoded_search_query.split()
+
+    session = SessionLocal()
+    conditions = or_(
+        *[getattr(Playlist, field).ilike(f"%{subterm}%") for subterm in subterms for field in ["name"]]
+    )
+    results = session.query(Playlist).filter(conditions).order_by(desc(Playlist.play_count)).limit(20).all()
+
+    session.close()
+
+    if len(results) == 0:
+        return {"playlist_founded": []}
+    else:
+        return {"playlist_founded": [{"id": playlist.id, "name": playlist.name, "image_url": playlist.image_url} for playlist in
+                                results]}
+
+
 # PLAYLIST
 
-def add_playlist(name, creator_id):
+def add_playlist(name, creator_id, image_url, spotify_id):
     session = SessionLocal()
-    new_playlist = Playlist(name=name, creator_id=creator_id)
+    new_playlist = Playlist(name=name, creator_id=creator_id, image_url=image_url, id_spotify=spotify_id)
     session.add(new_playlist)
     session.commit()
     playlist_id = new_playlist.id
@@ -143,12 +162,13 @@ def get_all_playlists(offset: int = 0, limit: int = 10):
     session.close()
     return [{"id": result.id, "name": result.name, "creator_id": result.creator_id} for result in results]
 
+from sqlalchemy import desc
 
 def get_best_playlists(limit: int = 5):
     session = SessionLocal()
-    results = session.query(Playlist).order_by(Playlist.play_count).limit(limit).all()
+    results = session.query(Playlist).order_by(desc(Playlist.play_count)).limit(limit).all()
     session.close()
-    return [{"play_count": result.play_count, "id": result.id, "name": result.name, "creator_id": result.creator_id} for
+    return [{"play_count": result.play_count, "id": result.id, "name": result.name, "creator_id": result.creator_id, "image_url":result.image_url} for
             result in results]
 
 
@@ -173,7 +193,8 @@ def get_song_from_playlist(playlist_id: int, numberOfSong: int):
 
     query = text("""
         SELECT * FROM table_playlist_song
-        WHERE playlist_id = :playlist_id
+        JOIN table_song on table_playlist_song.song_id = table_song.id
+        WHERE playlist_id = :playlist_id AND preview_url IS NOT NULL
         ORDER BY random()
         LIMIT 4
     """)
@@ -235,22 +256,121 @@ def debug_create_test_playlists():
 
         creator_id = response_json["owner"]["display_name"]
         name_playlist = response_json["name"]
+        image_url = response_json["images"][0]["url"]
+        id_spotify = endlink
 
-        id_playlist = add_playlist(name_playlist, creator_id)
-
+        id_playlist = add_playlist(name_playlist, creator_id, image_url, id_spotify)
+        
         tracks = response_json["tracks"]["items"]
-
         for track in tracks:
             name = track["track"]['name']
             artist = track["track"]['artists'][0]['name']
             album = track["track"]['album']['name']
             preview_url = track["track"]['preview_url']
-
-            song_id = add_song(name, artist, album, preview_url)
+            image_url = track['track']['album']['images'][0]['url']
+            id_spotify = track["track"]['id']
+            song_id = add_song(name, artist, album, preview_url, image_url, id_spotify)
             add_song_to_playlist(id_playlist, song_id)
 
     return
 
+
+def add_spotify_playlist(spotify_url_id:str):
+    client_id = '03af55ee0a774b71a5504d693e34ba83'
+    client_secret = '7c6090bff5b9434696350d5ba5eb0b35'
+
+    auth_url = 'https://accounts.spotify.com/api/token'
+
+    auth_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    auth_data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret
+    }
+
+    content = requests.post(auth_url, headers=auth_headers, data=auth_data)
+    access_token = content.json()["access_token"]
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+
+    id_playlist = [spotify_url_id]
+    base_link = 'https://api.spotify.com/v1/playlists/'
+
+    for endlink in id_playlist:
+        totalLink = base_link + endlink
+
+        response = requests.get(totalLink, headers=headers)
+        response_json = response.json()
+
+        if "error" in response_json:
+            print("error sur la playlist", totalLink)
+            continue
+
+        creator_id = response_json["owner"]["display_name"]
+        name_playlist = response_json["name"]
+        image_url = response_json["images"][0]["url"]
+        id_spotify = endlink
+
+
+        print("ID Spotify :",id_spotify)
+        if playlist_exists(id_spotify):
+            return "A playlist with the same image_url already exists. Not adding the new playlist."
+
+
+        id_playlist = add_playlist(name_playlist, creator_id, image_url, id_spotify)
+
+        print("AAAAAAAAAAAAAAAAAAAAAAA")
+        tracks = response_json["tracks"]["items"]
+        print(tracks)
+        for track in tracks[:50]:
+            name = track["track"]['name']
+            artist = track["track"]['artists'][0]['name']
+            album = track["track"]['album']['name']
+            preview_url = track["track"]['preview_url']
+            image_url = track['track']['album']['images'][0]['url']
+            id_spotify_song = track['track']['id']
+
+            if song_exists(id_spotify_song):
+
+                session = SessionLocal()
+                # Query the database for a playlist with the same image_url
+                song_id = session.query(Song).filter(Song.id_spotify == id_spotify_song).first().id
+                add_song_to_playlist(id_playlist, song_id)
+                session.commit()
+                session.close()
+                continue
+                 
+            
+            song_id = add_song(name, artist, album, preview_url, image_url, id_spotify_song)
+            add_song_to_playlist(id_playlist, song_id)
+
+    return "Playlist added successfully!"
+
+def playlist_exists(spotify_id:str):
+    session = SessionLocal()
+    # Query the database for a playlist with the same image_url
+    existing_playlist = session.query(Playlist).filter(Playlist.id_spotify == spotify_id).all()
+    session.commit()
+    session.close()
+
+    # Return True if a playlist was found, False otherwise
+    return len(existing_playlist) > 1
+
+
+def song_exists(spotify_id:str):
+    session = SessionLocal()
+    # Query the database for a playlist with the same image_url
+    existing_song = session.query(Song).filter(Song.id_spotify == spotify_id).first()
+    session.commit()
+    session.close()
+    # Return True if a playlist was found, False otherwise
+    return existing_song is not None
 
 def add_one_play(playlist_id):
     session = SessionLocal()
