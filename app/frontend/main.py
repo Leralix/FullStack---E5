@@ -78,10 +78,6 @@ async def game_test(playlist_id, question_number):
 
     return render_template("game.html", playlist_id=playlist_id, question_number=question_number, songs=songs, song_to_guess=song_to_guess)
 
-@app.route("/old_playlists")
-def old_playlists():
-    return render_template("playlist.html")
-
 @app.route("/playlists/<int:id>")
 def specific_playlists(id):
     return render_template("playlist_id.html", id_playlist=id)
@@ -111,17 +107,8 @@ async def add_user():
 @app.route("/profile")
 @oidc.require_login
 def display_userinfo():
-    user_info = None
 
-    if oidc.user_loggedin:
-        try:
-            access_token = oidc.get_access_token()
-            headers = {'Authorization': 'Bearer %s' % (access_token)}
-            user_info = requests.get('http://backend:8081/user_data', headers=headers).json()
-        except:
-            user_info = "404"
-
-    return user_info
+    return render_template("profile.html", user_data = get_user_data()["data"])
 
 @app.route("/login")
 def login_page():

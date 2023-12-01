@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Home - BTO</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" />
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <!-- MDB -->
+    <link rel="stylesheet" href="static/css/mdb.min.css" />
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="static/css/our_css.css" />
+
+</head>
+<body>
+  <!--Main Navigation-->
+  <header>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark d-none d-lg-block" style="z-index: 2000;">
+      <div class="container-fluid">
+        <!-- Navbar brand -->
+        <a class="navbar-brand me-2" id="mdb-navbar-brand-logo" href="/home">
+          <img src="static/img/BTO-text.png" height="16" alt="" loading="lazy" style="margin-top: -1px">
+        </a>
+      </div>
+    </nav>
+    <!-- Navbar -->
+
+    <!-- Background + Cards -->
+    <div id="intro" class="bg-image shadow-2-strong" >
+
+      <div class = "container mt-5 text-start " style="max-width: 500px;margin-left: 0;">
+        <h2 class = "text-white">Votre Profil</h2>
+
+        <div class="card mt-2">
+          <div class="card-header">Informations</div>
+          <div class="card-body">
+            <p class="card-text">
+              <p>Nom complet : {{user_data["name"]}} </p>
+              <p>Pseudo : {{preferred_username}} </p>
+              <p>Email : {{user_data["email"]}} </p>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+  <!--Main Navigation-->
+
+  <!-- Custom scripts -->
+  <script type="text/javascript" src="static/js/mdb.min.js"></script>
+  <!-- <script type="text/javascript" src="static/js/script.js"></script> -->
+</body>
+</html>
