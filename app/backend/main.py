@@ -20,7 +20,7 @@ app = FastAPI()
 keycloak_url = "http://keycloak:8080/"
 client = "myclient"
 realm = "myrealm"
-client_secret = "RgxygHySOlLqW2CJuDyZbHAN7V51tv3X"
+client_secret = "v53pmIGelbxYHZ5u0d6Yi9MNCzm8a0by"
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -33,7 +33,7 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                  client_id="myclient",
                                  realm_name="myrealm",
-                                 client_secret_key="RgxygHySOlLqW2CJuDyZbHAN7V51tv3X")
+                                 client_secret_key=client_secret)
 
 
 keycloak_openid = KeycloakOpenID(
@@ -61,7 +61,7 @@ admin_username = "admin"
 admin_password = "admin"
 realm_name = "master"
 client_id = "myclient"
-client_secret = "RgxygHySOlLqW2CJuDyZbHAN7V51tv3X"
+client_secret = client_secret
 
 # Initialisation de KeycloakAdmin pour l'administration
 keycloak_admin = KeycloakAdmin(server_url=server_url,

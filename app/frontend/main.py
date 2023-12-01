@@ -3,8 +3,6 @@ import logging
 import httpx
 from flask import Flask, g, request, make_response, session, redirect
 from flask import Flask, request, render_template, session, jsonify
-from oauth2client.client import OAuth2Credentials
-import json
 from flask_oidc import OpenIDConnect
 
 from os.path import join, dirname, realpath
