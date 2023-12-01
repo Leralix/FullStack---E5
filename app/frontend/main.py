@@ -1,13 +1,12 @@
 import logging
-
 import httpx
-from flask import Flask, g, request, make_response, session, redirect
+from flask import Flask, g, request, make_response, session, redirect, Request, Response, url_for
 from flask import Flask, request, render_template, session, jsonify
 from flask_oidc import OpenIDConnect
-from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
-
 from os.path import join, dirname, realpath
 import requests
+import random
+
 
 UPLOADS_PATH = join(dirname(realpath(__file__)), 'client_secrets.json')
 
@@ -66,6 +65,7 @@ def home():
 @app.route("/playlists")
 async def display_playlists():
     top_playlists = await backend_request("playlists/top")
+
     top_playlists = top_playlists["playlists"]
     return render_template("new_playlist.html", userinfo=get_user_data(), top_playlists=top_playlists)
 
@@ -79,6 +79,7 @@ async def game_test(playlist_id, question_number):
         return redirect("/home")
 
     return render_template("game.html", playlist_id=playlist_id, question_number=question_number, songs=songs, song_to_guess=song_to_guess)
+
 
 @app.route("/playlists/<int:id>")
 def specific_playlists(id):
@@ -102,7 +103,7 @@ async def add_user():
         response = await clientT.get(backend_url + "user/add", params={"name": name, "username": username, "email": email, "password": password})
 
         if response.status_code == 200:
-            return redirect(url_for("home"))
+            return redirect("/home")
         else:
             return jsonify({"error": response.text})
 
@@ -183,79 +184,62 @@ async def backend_request(endpoint: str, params=None):
             return {"error": "error"}
 
 
-@app.get("/import_playlist_spotify")
-async def import_playlist_spotify(request: Request):
-    return templates.TemplateResponse("import_playlist_spotify.html",
-                                      {"request": request})
+@app.route("/import_playlist_spotify")
+def import_playlist_spotify():
+    return render_template("import_playlist_spotify.html")
 
-@app.get("/import_playlist_spotify/{playlist_url_id}")
+@app.route("/import_playlist_spotify/<string:playlist_url_id>")
 async def add_spotify_playlist(playlist_url_id: str):
     result = await backend_request("add_spotify_playlist/" + playlist_url_id)
+    print("RESULT :", result)
     return result
 
 
 ## FONCTION DE JEU
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.responses import JSONResponse
-import random
 
 
-@app.get("/game/check_answer/{song_id}")
-async def check_answer(request: Request, response: Response, song_id :int):
-    true_answer = int(request.cookies.get("true_answer"))
-    state = request.query_params.get('state')
-    state_cookie = request.cookies["state"]
+@app.route("/game/check_answer/<string:song_id>")
+async def check_answer(song_id :str):
+    true_answer = request.cookies.get("true_answer")
+    state = request.args.get('state')
+    state_cookie = request.cookies.get("state")
 
 
-    playlist_id = request.query_params.get('playlist_id')
-    question_number = request.query_params.get('question_number')
+    playlist_id = request.args.get('playlist_id')
+    question_number = request.args.get('question_number')
 
-    response = RedirectResponse(url="/game/" + str(playlist_id) + "/" + str(int(question_number)), status_code=status.HTTP_303_SEE_OTHER)
+    response = make_response(redirect("/game/" + str(playlist_id) + "/" + str(int(question_number)), code=303))
 
     if state == state_cookie and song_id == true_answer:
         current_score = request.cookies.get("score",0)
         current_score = int(current_score) + 1
-        print("NEW SCORE :", current_score)
-        response.set_cookie(key="score", value=current_score, max_age=3600)
-        response.set_cookie(key="state", value="", max_age=3600)
+        response.set_cookie("score", str(current_score), max_age=3600)
+        response.set_cookie("state", "", max_age=3600)
 
     return response
 
-@app.get("/game/{playlist_id}/{question_number}")
-async def game_test(request: Request,  response: Response, playlist_id: str, question_number: int):
+@app.route("/game/<string:playlist_id>/<int:question_number>")
+async def game_test(playlist_id: str, question_number: int):
 
     hash_random = random.getrandbits(128)
 
-
-    response.set_cookie(key="state", value=hash_random)
-
-
     if "question_number" not in request.cookies:
-        request.cookies["question_number"] = 1
-    question_number_cookie = request.cookies["question_number"]
-
-
-
-    print(question_number_cookie)
-    print(question_number)
+        question_number_cookie = 1
+    else:
+        question_number_cookie = request.cookies["question_number"]
 
     if int(question_number_cookie) != question_number:
-        url = app.url_path_for("game_test", playlist_id=playlist_id, question_number=1)
-        response = RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
-        response.set_cookie(key="question_number", value=1, max_age=30)
+        response = redirect(url_for("game_test", playlist_id=playlist_id, question_number=1), code=303)
+        response.set_cookie("state", str(hash_random))
+        response.set_cookie("question_number", "1", max_age=30)
         return response
     
     if question_number >= 11:
         score = request.cookies.get("score",0)
-        response = templates.TemplateResponse("result.html",
-                                      {
-                                          "request": request,
-                                          "response":response,
-                                          "score":score,
-                                          })
+        response = make_response(render_template("result.html", score = score))
     
-        response.set_cookie(key="question_number", value=1, max_age=30)
-        response.set_cookie(key="score", value=0, max_age=3600)
+        response.set_cookie("question_number", "1", max_age=30)
+        response.set_cookie("score", "0", max_age=3600)
 
         if int(question_number_cookie) >=10:
             return response
@@ -272,19 +256,16 @@ async def game_test(request: Request,  response: Response, playlist_id: str, que
     song_to_guess = game["actual_song"]
 
  
-    response = templates.TemplateResponse("game.html",
-                                      {
-                                          "request": request,
-                                          "response":response,
-                                          "playlist_id": playlist_id,
-                                          "question_number": question_number,
-                                          "state":hash_random,
-                                          "songs": songs,
-                                          "song_to_guess": song_to_guess})
+    response = make_response(render_template("game.html",
+                                          playlist_id = playlist_id, 
+                                          question_number = question_number,
+                                          state = str(hash_random),
+                                          songs = songs,
+                                          song_to_guess= song_to_guess))
 
-    response.set_cookie(key="question_number", value=question_number+1, max_age=3600)
-    response.set_cookie(key="true_answer", value=song_to_guess['id'], max_age=300)
-    response.set_cookie(key="state", value=hash_random, max_age=300)
+    response.set_cookie("question_number", str(question_number+1), max_age=3600)
+    response.set_cookie("true_answer", str(song_to_guess['id']), max_age=300)
+    response.set_cookie("state", str(hash_random), max_age=300)
     return response
 
 
