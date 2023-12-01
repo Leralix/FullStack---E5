@@ -26,9 +26,8 @@
                 .then(data => {
                     // Hide the loading animation
                     document.getElementById("loading").style.display = "none";
-
                     // Show the done message
-                    document.getElementById("done").textContent = data;  // Add this line
+                    document.getElementById("done").textContent = data['status'];  // Add this line
                     document.getElementById("done").style.display = "block";
 
                 });

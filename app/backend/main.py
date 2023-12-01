@@ -204,4 +204,4 @@ def protected(token: str = Depends(oauth2_scheme)):
 
 @app.get("/api/add_spotify_playlist/{playlist_url_id}")
 async def get_one_game(playlist_url_id: str):
-    return database.add_spotify_playlist(playlist_url_id)
+    return {"status" : database.add_spotify_playlist(playlist_url_id)}
