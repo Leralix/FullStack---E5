@@ -99,15 +99,15 @@ async def startup():
 
     ################################################################
     # TEST ONLY
-    #models.Base.metadata.drop_all(bind=database.engine)
+    models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
-    #models.Base.metadata.create_all(bind=database.engine)
+    models.Base.metadata.create_all(bind=database.engine)
     print(f"Succès !")
 
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    #database.debug_create_test_playlists()
+    database.debug_create_test_playlists()
 
     ##print(f"Ajout d'utilisateurs pour les tests...")
     # database.add_user("1", "MrTest", "MrTest@gmail.com")
