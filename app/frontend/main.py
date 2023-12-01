@@ -69,17 +69,6 @@ async def display_playlists():
     top_playlists = top_playlists["playlists"]
     return render_template("new_playlist.html", userinfo=get_user_data(), top_playlists=top_playlists)
 
-@app.route("/game/<playlist_id>/<int:question_number>")
-async def game_test(playlist_id, question_number):
-    game = await backend_request("game/" + playlist_id)
-    songs = game["songs"]
-    song_to_guess = game["actual_song"]
-
-    if question_number >= 10:
-        return redirect("/home")
-
-    return render_template("game.html", playlist_id=playlist_id, question_number=question_number, songs=songs, song_to_guess=song_to_guess)
-
 
 @app.route("/playlists/<int:id>")
 def specific_playlists(id):
