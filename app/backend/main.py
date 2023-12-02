@@ -20,7 +20,7 @@ app = FastAPI()
 keycloak_url = "http://keycloak:8080/"
 client = "myclient"
 realm = "myrealm"
-client_secret = "v53pmIGelbxYHZ5u0d6Yi9MNCzm8a0by"
+client_secret = "RgxygHySOlLqW2CJuDyZbHAN7V51tv3X"
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -99,7 +99,7 @@ async def startup():
 
     ################################################################
     # TEST ONLY
-    models.Base.metadata.drop_all(bind=database.engine)
+    #models.Base.metadata.drop_all(bind=database.engine)
     ################################################################
 
     models.Base.metadata.create_all(bind=database.engine)
@@ -107,7 +107,7 @@ async def startup():
 
     ## AJOUTER DES DONNEES DANS BDD
     ## ID CONSTANT POUR PLAYLIST DE MICHAEL JACKSON
-    database.debug_create_test_playlists()
+    #database.debug_create_test_playlists()
 
     ##print(f"Ajout d'utilisateurs pour les tests...")
     # database.add_user("1", "MrTest", "MrTest@gmail.com")
@@ -198,9 +198,22 @@ async def get_one_game(playlist_id: int, numberOfGuesses: int = 4):
 
 @app.get("/user_data")
 def protected(token: str = Depends(oauth2_scheme)):
-    return {"data": keycloak_openid.userinfo(token)}
-    
+    userinfo = keycloak_openid.userinfo(token)
+    user = database.get_user(userinfo["sub"], userinfo["name"], userinfo["email"])
+    return {"data": userinfo, "id":user.keycloak_id}
 
+
+
+@app.get("/api/update_user_score/{keycloak_id}/{playlist_id}/{score}")
+def update_user_score(keycloak_id, playlist_id, score):
+    database.update_user_score(keycloak_id, playlist_id, score)
+    return {"status": "success"}
+    
+@app.get("/api/get_user_score/{keycloak_id}")
+def get_user_score(keycloak_id):
+    user_scores = database.user_scores(keycloak_id)
+    print(user_scores)
+    return {"list_playlists": user_scores}
 
 @app.get("/api/add_spotify_playlist/{playlist_url_id}")
 async def get_one_game(playlist_url_id: str):

@@ -50,9 +50,24 @@
         </div>
 
       </div>
+
+      <h2>Your Playlists</h2>
+      <ul>
+          {% for playlist in playlist_played %}
+              <li>
+                  <h5>{{ playlist.name }}</h5>
+                  <img class="card-img-top rounded-9" src="{{ playlist.image }}" alt="{{ playlist.name }} image" style="width: 100px; height: 100px;">
+                  <p>Number of times played: {{ playlist.number_times_played }}</p>
+                  <p>Score: {{ playlist.score }}</p>
+              </li>
+          {% endfor %}
+      </ul>
     </div>
+
+
   </header>
   <!--Main Navigation-->
+
 
   <!-- Custom scripts -->
   <script type="text/javascript" src="static/js/mdb.min.js"></script>

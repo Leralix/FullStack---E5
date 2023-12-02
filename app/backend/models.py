@@ -90,3 +90,17 @@ class PlaylistSong(Base):
 
     def get_song_id(self):
         return self.song_id
+
+
+class UserPlaylist(Base):
+    __tablename__ = 'table_user_playlist'
+
+    id = Column(Integer, primary_key=True, index=True)
+    keycloak_id = Column(String)
+    playlist_id = Column(Integer)
+    score = Column(Integer, default=0)
+    number_times_played = Column(Integer, default=0)
+
+    def get_id(self):
+        return self.id
+

@@ -5,6 +5,7 @@ from flask_oidc import OpenIDConnect
 from os.path import join, dirname, realpath
 import requests
 import random
+import asyncio
 
 UPLOADS_PATH = join(dirname(realpath(__file__)), 'client_secrets.json')
 
@@ -89,7 +90,12 @@ def search_songs():
 @app.route("/profile")
 @oidc.require_login
 def display_userinfo():
-    return render_template("profile.html", user_data=get_user_data()["data"])
+    userinfo = get_user_data()
+    user_data = userinfo["data"]
+    keycloak_id = userinfo["id"]
+
+    playlist_played = requests.get('http://backend:8081/api/get_user_score/'+keycloak_id).json()
+    return render_template("profile.html", user_data=user_data, playlist_played=playlist_played['list_playlists'])
 
 
 @app.route("/login/home")
@@ -170,14 +176,19 @@ async def game_test(playlist_id: str, question_number: int):
         response.set_cookie("question_number", "1", max_age=30)
         return response
 
-    if question_number >= 11:
+    if question_number >= 3:
         score = request.cookies.get("score", 0)
         response = make_response(render_template("result.html", score=score))
+
+
+        user_data = get_user_data()
+        keycloak_id = user_data['id']
+        await backend_request("update_user_score/" + keycloak_id + "/" + str(playlist_id) + "/" + score)
 
         response.set_cookie("question_number", "1", max_age=30)
         response.set_cookie("score", "0", max_age=3600)
 
-        if int(question_number_cookie) >= 10:
+        if int(question_number_cookie) >= 3:
             return response
         else:
             return {"You tried to cheat!": "loser!"}

@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from models import User, Song, Playlist, PlaylistSong
+from models import User, Song, Playlist, PlaylistSong, UserPlaylist
 import os
 import requests
 
@@ -19,6 +19,48 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 Base = declarative_base()
 
 
+
+
+def update_user_score(keycloak_id, playlist_id, score):
+    session = SessionLocal()
+    
+    user_playlist = session.query(UserPlaylist).filter(UserPlaylist.keycloak_id == keycloak_id, UserPlaylist.playlist_id == playlist_id).first()
+    print(user_playlist)
+    print(user_playlist is None)
+    if user_playlist is None:
+        new_user_playlist = UserPlaylist(keycloak_id=keycloak_id, playlist_id=playlist_id, score=score, number_times_played=1)
+        session.add(new_user_playlist)
+    else:
+        print("ELSE")
+        user_playlist.score = score
+        user_playlist.number_times_played = user_playlist.number_times_played + 1
+        print("NUMBER TIME PLAYED", user_playlist.number_times_played)
+    session.commit()
+    session.close()
+
+
+def user_scores(keycloak_id):
+    session = SessionLocal()
+    existing_user_playlists = session.query(
+        UserPlaylist,
+        Playlist.name,
+        Playlist.image_url,
+        UserPlaylist.number_times_played,
+        UserPlaylist.score
+    ).join(
+        Playlist, UserPlaylist.playlist_id == Playlist.id
+    ).filter(
+        UserPlaylist.keycloak_id == keycloak_id
+    ).all()
+    session.close()
+    return [{
+        'playlist_id': up.UserPlaylist.id,
+        'name': up.name,
+        'image': up.image_url,
+        'number_times_played': up.UserPlaylist.number_times_played,
+        'score': up.UserPlaylist.score
+    } for up in existing_user_playlists]
+
 ###Partie User
 def add_user(keycloak_id, name, email):
     session = SessionLocal()
@@ -27,6 +69,21 @@ def add_user(keycloak_id, name, email):
     session.commit()
     session.close()
 
+def user_exists(keycloak_id):
+    session = SessionLocal()
+    existing_user = session.query(User).filter(User.keycloak_id == keycloak_id).first()
+    session.close()
+    return existing_user
+
+def get_user(keycloak_id, name, email):
+
+    if user_exists(keycloak_id) is None:
+        session = SessionLocal()
+        new_user = User(keycloak_id=keycloak_id, name=name, email=email)
+        session.add(new_user)
+        session.commit()
+        session.close()
+    return user_exists(keycloak_id)
 
 def get_user_from_kc(keycloak_id):
     session = SessionLocal()
