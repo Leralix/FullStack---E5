@@ -22,6 +22,8 @@ Librairies utilisés
 
 ## Instruction pour le lancement:
 
+Renomer le fichier `.env.copy`en `.env`
+
 Pour lancer le projet, executer `docker-compose up -d` a la racide du dossier
 
 Pour mettre en place keycloak sur une nouvelle machine, re-générer les client secret des client `frontend` et `myclient` dans le realm `myrealm`. Sans cela, l'authentification ne sera pas disponible.
