@@ -22,11 +22,13 @@ Librairies utilisés
 
 ## Instruction pour le lancement:
 
-Renomer le fichier `.env.copy`en `.env`
+Renomer le fichier `.env.copy` en `.env`
+
 
 Pour lancer le projet, executer `docker-compose up -d` a la racide du dossier
 
-Pour mettre en place keycloak sur une nouvelle machine, re-générer les client secret des client `frontend` et `myclient` dans le realm `myrealm`. Sans cela, l'authentification ne sera pas disponible.
+Pour ajouter l'authentification keycloak, importer le Json `realm-export-1_12_myrealm.json` dans keycloak (localhost:8080) pour le realm "my realm" depuis le dossier `keycloak_models`
 
+Pour mettre en place keycloak sur une nouvelle machine, re-générer les client secret des client `frontend` et `myclient` dans le realm `myrealm`. Sans cela, l'authentification ne sera pas disponible.
 
 Nous remercions MDBootstrap pour avoir permis une création rapide et efficace d'un frontend
